@@ -1,6 +1,6 @@
 # Threat model
 
-Status: initial version (Milestone 1, step S0), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S1 (storage), 2026-10-10. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -49,6 +49,9 @@ flowchart LR
 | Over-broad Atlassian reads (`executeRead`, `discover`) | Per-agent policy and platform baseline denies in Stewardry | S3, S5, S7 (ADR 0009) |
 | An outage shown as missing consent | Consent only from structured elicitation; unknown errors fail closed | S7, S14b (ADR 0010) |
 | Credential leakage into logs, prompts, audit, or artifacts | Redaction filter, secret-shape scan, and no-token tests | S0 (repo scan), S2, S6, S14b |
+| Local data exposure or accidental commit | Data directory outside any git work tree; directory 0700, and database and artifact files 0600 | S1 |
+| Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
+| Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |
 | Audit tampering | Append-only triggers, hash chain, anchors | S2 |
 | Runaway cost | Per-run and daily budgets enforced in the model boundary | S6 |
 | Supply-chain compromise | Hash-locked dependencies, 14-day cooldown, SHA-pinned actions, digest-pinned images, pip-audit, CodeQL, zizmor, actionlint | S0 |
