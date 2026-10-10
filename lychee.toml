@@ -1,0 +1,18 @@
+# Link check for the Markdown docs (CI job `links`). Relative links and
+# #anchors are also checked offline by `make docs`.
+include_fragments = "full"
+max_retries = 3
+timeout = 30
+accept = ["200..=299", "429"]
+exclude = [
+  # The local broker stack and placeholder hosts.
+  '^https?://(localhost|127\.0\.0\.1)',
+  '^https?://([a-z0-9-]+\.)*example\.(com|org)',
+  '^https?://[a-z-]+:[0-9]+',
+  # MCP and OAuth endpoints answer 401/405 without a token.
+  '^https://mcp\.atlassian\.com/',
+  '^https://auth\.atlassian\.com/',
+  # Pages that may require sign-in or block bots.
+  '^https://www\.atlassian\.com/software/confluence/pricing',
+  '^https://github\.com/chief-builder/stewardry/security/advisories/new',
+]

@@ -1,0 +1,16 @@
+# The 14-day cooldown matches ADR 0001: fresh releases settle before they land.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    cooldown: { default-days: 14 }
+    groups:
+      actions: { patterns: ["*"] }
+
+  - package-ecosystem: uv
+    directory: /
+    schedule: { interval: weekly }
+    cooldown: { default-days: 14 }
+    groups:
+      python: { patterns: ["*"] }
