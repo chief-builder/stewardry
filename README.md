@@ -14,8 +14,9 @@ evals, offline replays, and scripted examples are always labeled separately.
 
 ## Status
 
-Milestone 1 is in progress. Step S0 is the repository skeleton and quality
-gate. There is no application behavior yet. See the
+Milestone 1 is in progress. Step S0 (repository skeleton and quality gate)
+is done. Step S1 adds storage: the SQLite schema, migrations, and a
+content-addressed artifact store. There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
 
 ## Quickstart
@@ -31,6 +32,11 @@ make check
 tests with coverage (network blocked), Markdown link and anchor checks, a
 secret-pattern scan, and workflow linting. `make help` lists the other
 targets: `build`, `audit` (needs network), and `lock`.
+
+To create or migrate the local database, run `uv run stewardry db upgrade`.
+The data directory defaults to `~/.local/share/stewardry`; set
+`STEWARDRY_DATA_DIR` to choose another. It must be outside any git work
+tree, and it is created owner-only.
 
 ## Documentation
 
