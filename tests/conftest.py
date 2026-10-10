@@ -6,9 +6,11 @@ with their own marker when those tiers are added.
 
 import socket
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
+from sqlalchemy import Engine
 
 
 class NetworkBlockedError(RuntimeError):
@@ -26,3 +28,15 @@ def _block_network(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.setattr(socket, "create_connection", _blocked)
     monkeypatch.setattr(socket, "getaddrinfo", _blocked)
     yield
+
+
+@pytest.fixture
+def engine(tmp_path: Path) -> Iterator[Engine]:
+    """A fresh SQLite database migrated to the latest schema."""
+    from stewardry.platform.db import migrate
+    from stewardry.platform.db.engine import make_engine
+
+    eng = make_engine(tmp_path / "test.db")
+    migrate.upgrade(eng)
+    yield eng
+    eng.dispose()
