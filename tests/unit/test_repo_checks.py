@@ -1,8 +1,10 @@
 """Tests for the repository checks in tools/ (docs links and secret patterns)."""
 
+import subprocess
 from pathlib import Path
 
 from tools.check_docs import slug
+from tools.check_pinned_links import pinned_links
 from tools.check_secrets import findings
 
 
@@ -27,3 +29,18 @@ def test_clean_file_has_no_findings(tmp_path: Path) -> None:
     clean = tmp_path / "notes.md"
     clean.write_text("Set ANTHROPIC_API_KEY in your .env file.\n", encoding="utf-8")
     assert findings([clean], tmp_path) == []
+
+
+def test_pinned_github_links_are_found(tmp_path: Path) -> None:
+    sha = "a" * 40
+    (tmp_path / "doc.md").write_text(
+        f"See [api](https://github.com/acme/broker/blob/{sha}/docs/api.md) and "
+        f"<https://github.com/acme/broker/blob/{sha}/src/x.json>. "
+        "Not pinned: https://github.com/acme/broker/blob/main/README.md\n",
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)  # noqa: S607
+    assert pinned_links(tmp_path) == {
+        ("acme", "broker", sha, "docs/api.md"),
+        ("acme", "broker", sha, "src/x.json"),
+    }

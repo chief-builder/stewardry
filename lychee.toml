@@ -16,6 +16,9 @@ exclude = [
   # Pages that may require sign-in or block bots.
   '^https://www\.atlassian\.com/software/confluence/pricing',
   '^https://github\.com/chief-builder/stewardry/security/advisories/new',
+  # File pages pinned to a commit SHA: github.com answers CI with 503.
+  # Checked through the GitHub API instead (tools/check_pinned_links.py).
+  '^https://github\.com/[^/]+/[^/]+/blob/[0-9a-f]{40}/',
 ]
 
 # github.com answers bursts of file-page requests from CI runners with
