@@ -1,6 +1,6 @@
 # ADR 0004: Storage and audit integrity
 
-Status: Proposed · 2026-10-10
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
 
 ## Decision
 

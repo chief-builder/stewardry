@@ -1,6 +1,6 @@
 # ADR 0008: Adding Stewardry's client and role users to the hub
 
-Status: Proposed (owner approved the direction for G2 on 2026-10-10) · 2026-10-10
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
 
 ## Context
 

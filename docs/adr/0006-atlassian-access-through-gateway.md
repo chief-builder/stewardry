@@ -1,8 +1,6 @@
 # ADR 0006: Atlassian access through the existing gateway
 
-Status: Proposed · 2026-10-10. The owner decided G1 (keep the in-memory test
-setup) and G6 (memory-only credentials) on 2026-10-10. See
-[broker-contracts.md](../broker-contracts.md#gaps-the-broker-cannot-meet-as-is).
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
 
 ## Decision
 
