@@ -12,9 +12,12 @@ paragraph of section 14 are fixed. Do not reopen them without the owner.
 
 ## Current phase
 
-Phase 1 is planning only. Do not write application code until the owner has
-reviewed the plan in [docs/plan/](docs/plan/) and the ADRs in
-[docs/adr/](docs/adr/).
+Phase 1 (planning) was reviewed and merged on 2026-10-10
+(chief-builder/stewardry#1). ADRs 0001–0010 are accepted. Implementation
+follows [docs/plan/milestone-1.md](docs/plan/milestone-1.md), offline steps
+first. Connected steps (S15 onward) wait for setup verification and the
+owner's go-ahead. Remaining owner questions are in
+[docs/plan/open-questions.md](docs/plan/open-questions.md).
 
 ## Honesty rules
 
