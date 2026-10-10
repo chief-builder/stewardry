@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S2 (audit log), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S3 (agent registry), 2026-10-10. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -46,7 +46,9 @@ flowchart LR
 |---|---|---|
 | Prompt injection in questionnaires or NDAs | Text treated as data; authorization checked on every call; the model cannot approve; screening only supplements | S5, S9, S11, Milestone 2 |
 | Wrong acting user or identity swap | Task grants bound to the authenticated `sub`; no fallback identity | S4, S5 |
-| Over-broad Atlassian reads (`executeRead`, `discover`) | Per-agent policy and platform baseline denies in Stewardry | S3, S5, S7 (ADR 0009) |
+| Over-broad Atlassian reads (`executeRead`, `discover`) | Per-agent policy and platform baseline denies in Stewardry. From S3, applying a policy that names anything outside the baseline is refused and audited; runtime enforcement on every call lands in S5 and S7 | S3, S5, S7 (ADR 0009) |
+| An agent keeps running after it is paused or retired, or a model or tool change skips evaluation | Registry lifecycle: `check_runnable` refuses unregistered, discovery-stage, paused, and retired agents, and is called at every controlled boundary from S5. A change to model, operations, or model tools requires an accepted eval before shadow or later | S3, S5 |
+| Unauthorized registry or lifecycle change | Role checks against Stewardry's role mapping (platform engineer and engagement owner); refusals are audited as `denied` | S3 |
 | An outage shown as missing consent | Consent only from structured elicitation; unknown errors fail closed | S7, S14b (ADR 0010) |
 | Credential leakage into logs, prompts, audit, or artifacts | One shared list of secret patterns: the repo scan (S0), redaction of audit events and `stewardry` log records (S2), plus no-token tests | S0, S2, S6, S14b |
 | Local data exposure or accidental commit | Data directory outside any git work tree; directory 0700, and database and artifact files 0600 | S1 |
@@ -88,6 +90,16 @@ These are the broker's documented limitations. Stewardry does not hide them:
   human-readable text (G4).
 - The test hub and custody run in dev mode with in-memory storage (G1).
   Restarts disconnect every Atlassian account.
+
+## Interim limitation: CLI identity (until S4)
+
+The `stewardry registry` commands take `--as <sub>`. The CLI is a local
+administrative tool. That subject is **asserted by the operator**, not
+authenticated: it is checked against Stewardry's role mapping and recorded
+in the audit log, but anyone with shell access to the data directory could
+assert any subject. Authenticated sign-in arrives with the web app in S4.
+Until then, registry changes made through the CLI are attributed, not
+authenticated.
 
 ## Non-claims
 

@@ -1,0 +1,16 @@
+# Platform baseline (ADR 0009): the only grants any agent policy may contain.
+# An agent file that names anything outside these lists is refused when it is
+# applied. Raw MCP tools (executeRead, discover, any write) have no operation
+# name at all, so no file can grant them.
+schema_version: 1
+operations:
+  - jira.get_request
+  - confluence.list_pages
+  - confluence.read_page
+jira_projects:
+  - SQR        # synthetic security-questionnaire requests
+confluence_spaces:
+  - SECPOL     # synthetic security policies
+  - LEGALPB    # synthetic legal playbook (NDA triage, Milestone 3)
+models:
+  - claude-opus-5-5   # ADR 0003; a model change is an eval-gated policy change

@@ -1,0 +1,53 @@
+# Questionnaire agent (spec section 5). Applied with:
+#   stewardry registry apply policies/agents/questionnaire-agent.yaml --as <platform engineer sub>
+# Changing `policy.model`, `policy.operations`, or `policy.model_tools` creates a
+# version that needs an accepted evaluation before the agent can move into
+# shadow or later statuses.
+schema_version: 1
+agent_id: questionnaire-agent
+registration:
+  name: Security questionnaire agent
+  purpose: >-
+    Draft answers to synthetic security questionnaires from current, permitted
+    security-policy passages, with citations, for GRC review. Routes missing,
+    stale, or conflicting evidence to an expert. Never approves.
+  owning_team: Security / GRC (synthetic)
+  business_owner: owner        # hub usernames from ADR 0008
+  operational_owner: platform  # until handoff transfers operational ownership
+  risk_tier: 2                 # drafts need human approval before release
+policy:
+  stages:
+    intake:
+      acting_roles: [sales]
+    drafting:
+      acting_roles: [grc]
+      requires_task_grant: true
+  operations:
+    jira.get_request:
+      stage: intake
+      projects: [SQR]
+      fields: [summary, reporter, created, customer]
+    confluence.list_pages:
+      stage: drafting
+      spaces: [SECPOL]
+    confluence.read_page:
+      stage: drafting
+      catalog: policies/catalogs/secpol.yaml   # page catalog arrives with S8 and S10
+      detail: full
+      max_calls_per_run: 300
+  model:
+    id: claude-opus-5-5
+    effort: medium
+    prompt_version: questionnaire-draft@1
+  model_tools:
+    - list_task_policies
+    - read_policy_passages
+    - submit_answer
+    - route_to_expert
+  # PLACEHOLDER budgets: not yet agreed (docs/plan/open-questions.md, Q9).
+  # They must be set before any connected session.
+  budgets:
+    per_run_usd: 5.00
+    per_run_model_calls: 400
+    per_run_tool_calls: 1200
+  customer_scope: per_task

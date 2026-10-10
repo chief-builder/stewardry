@@ -1,0 +1,313 @@
+{
+  "$defs": {
+    "Budgets": {
+      "additionalProperties": false,
+      "properties": {
+        "per_run_model_calls": {
+          "exclusiveMinimum": 0,
+          "title": "Per Run Model Calls",
+          "type": "integer"
+        },
+        "per_run_tool_calls": {
+          "exclusiveMinimum": 0,
+          "title": "Per Run Tool Calls",
+          "type": "integer"
+        },
+        "per_run_usd": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,6}|(?=[\\d.]{1,9}0*$)\\d{0,6}\\.\\d{0,2}0*$)",
+              "type": "string"
+            }
+          ],
+          "title": "Per Run Usd"
+        }
+      },
+      "required": [
+        "per_run_usd",
+        "per_run_model_calls",
+        "per_run_tool_calls"
+      ],
+      "title": "Budgets",
+      "type": "object"
+    },
+    "Model": {
+      "additionalProperties": false,
+      "properties": {
+        "effort": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
+          "title": "Effort",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "prompt_version": {
+          "pattern": "^[a-z0-9-]+@[0-9]+$",
+          "title": "Prompt Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "effort",
+        "prompt_version"
+      ],
+      "title": "Model",
+      "type": "object"
+    },
+    "Operation": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Catalog"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "const": "full",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "max_calls_per_run": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Calls Per Run"
+        },
+        "projects": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Projects",
+          "type": "array"
+        },
+        "spaces": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Spaces",
+          "type": "array"
+        },
+        "stage": {
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$",
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage"
+      ],
+      "title": "Operation",
+      "type": "object"
+    },
+    "Policy": {
+      "additionalProperties": false,
+      "properties": {
+        "budgets": {
+          "$ref": "#/$defs/Budgets"
+        },
+        "customer_scope": {
+          "const": "per_task",
+          "title": "Customer Scope",
+          "type": "string"
+        },
+        "model": {
+          "$ref": "#/$defs/Model"
+        },
+        "model_tools": {
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Model Tools",
+          "type": "array"
+        },
+        "operations": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Operation"
+          },
+          "title": "Operations",
+          "type": "object"
+        },
+        "stages": {
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9][a-z0-9-]{0,63}$": {
+              "$ref": "#/$defs/Stage"
+            }
+          },
+          "title": "Stages",
+          "type": "object"
+        }
+      },
+      "required": [
+        "stages",
+        "operations",
+        "model",
+        "model_tools",
+        "budgets",
+        "customer_scope"
+      ],
+      "title": "Policy",
+      "type": "object"
+    },
+    "Registration": {
+      "additionalProperties": false,
+      "properties": {
+        "business_owner": {
+          "maxLength": 255,
+          "minLength": 1,
+          "title": "Business Owner",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 255,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "operational_owner": {
+          "maxLength": 255,
+          "minLength": 1,
+          "title": "Operational Owner",
+          "type": "string"
+        },
+        "owning_team": {
+          "maxLength": 255,
+          "minLength": 1,
+          "title": "Owning Team",
+          "type": "string"
+        },
+        "purpose": {
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "risk_tier": {
+          "enum": [
+            1,
+            2,
+            3
+          ],
+          "title": "Risk Tier",
+          "type": "integer"
+        },
+        "runbook_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runbook Url"
+        }
+      },
+      "required": [
+        "name",
+        "purpose",
+        "owning_team",
+        "business_owner",
+        "operational_owner",
+        "risk_tier"
+      ],
+      "title": "Registration",
+      "type": "object"
+    },
+    "Stage": {
+      "additionalProperties": false,
+      "properties": {
+        "acting_roles": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Acting Roles",
+          "type": "array"
+        },
+        "requires_task_grant": {
+          "default": false,
+          "title": "Requires Task Grant",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "acting_roles"
+      ],
+      "title": "Stage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$",
+      "title": "Agent Id",
+      "type": "string"
+    },
+    "policy": {
+      "$ref": "#/$defs/Policy"
+    },
+    "registration": {
+      "$ref": "#/$defs/Registration"
+    },
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "agent_id",
+    "registration",
+    "policy"
+  ],
+  "title": "AgentPolicyFile",
+  "type": "object"
+}

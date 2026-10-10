@@ -70,6 +70,17 @@ budgets:                          # placeholders until set before connected sess
 customer_scope: per_task          # a run sees only its task's customer
 ```
 
+*Implementation note (S3, 2026-10-10):* the implemented file shape is in
+[`policies/agents/questionnaire-agent.yaml`](../../policies/agents/questionnaire-agent.yaml)
+and is validated by
+[`policies/agent-policy.schema.json`](../../policies/agent-policy.schema.json).
+It differs from the sketch above in one way. Owners and the risk tier sit in
+a `registration` section stored on the agent record. Only the `policy`
+section (with the agent ID and schema version) is hashed into a version, so
+changing an owner does not create a new policy version. The platform
+baseline is
+[`policies/platform-baseline.yaml`](../../policies/platform-baseline.yaml).
+
 ### Effective policy, checked on every call
 
 The executor allows a call only when all of these allow it:
