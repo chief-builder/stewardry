@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S1 (storage), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S2 (audit log), 2026-10-10. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -48,13 +48,32 @@ flowchart LR
 | Wrong acting user or identity swap | Task grants bound to the authenticated `sub`; no fallback identity | S4, S5 |
 | Over-broad Atlassian reads (`executeRead`, `discover`) | Per-agent policy and platform baseline denies in Stewardry | S3, S5, S7 (ADR 0009) |
 | An outage shown as missing consent | Consent only from structured elicitation; unknown errors fail closed | S7, S14b (ADR 0010) |
-| Credential leakage into logs, prompts, audit, or artifacts | Redaction filter, secret-shape scan, and no-token tests | S0 (repo scan), S2, S6, S14b |
+| Credential leakage into logs, prompts, audit, or artifacts | One shared list of secret patterns: the repo scan (S0), redaction of audit events and `stewardry` log records (S2), plus no-token tests | S0, S2, S6, S14b |
 | Local data exposure or accidental commit | Data directory outside any git work tree; directory 0700, and database and artifact files 0600 | S1 |
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
 | Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |
-| Audit tampering | Append-only triggers, hash chain, anchors | S2 |
+| Audit tampering | Append-only triggers, an insert trigger that only accepts the next link, a hash chain, and anchors. `stewardry audit verify` detects edits, deletions, reordering, and insertions; truncation and full rewrites are detected only against an anchor | S2 |
 | Runaway cost | Per-run and daily budgets enforced in the model boundary | S6 |
 | Supply-chain compromise | Hash-locked dependencies, 14-day cooldown, SHA-pinned actions, digest-pinned images, pip-audit, CodeQL, zizmor, actionlint | S0 |
+
+## Audit integrity: trust boundary and recovery
+
+- The database triggers stop accidental or casual changes. Anyone who
+  controls the SQLite file can drop them. The hash chain then shows edited,
+  deleted, reordered, or inserted events.
+- Someone who removes the newest events, or recomputes the whole chain,
+  can be detected only by comparing against an anchor taken earlier.
+  Anchors in the data directory are under the same control as the database.
+  Copy the anchor file somewhere else, for example with each dated session
+  record, after running `stewardry audit anchor`.
+- **If `stewardry audit verify` fails:**
+  1. Stop connected sessions.
+  2. Keep copies of the database, its WAL file, and every anchor file
+     exactly as found.
+  3. Record the verify output, the date, and the operator.
+  4. Restore the last copy that verifies against an anchor held outside the
+     data directory, and record what was lost.
+  5. Treat any results that rely on the affected window as unverified.
 
 ## Inherited limitations (vendor-token-broker at `20d1426`)
 

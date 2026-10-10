@@ -21,9 +21,14 @@ Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
     records the head.
   - `stewardry audit verify` detects edited, deleted, reordered, and inserted
     events, and a truncated tail when compared with the last anchor.
-  - Events pass through a redaction filter before they are written. Secret
-    probes (JWT shapes, bearer headers, configured secret values) fail the
-    write in tests.
+  - Events pass through a redaction filter before they are written.
+    Secret-shaped values (JWT shapes, bearer headers, API keys, configured
+    secret values) are replaced with `[REDACTED:<kind>]`. The event is kept
+    and lists the kinds removed. Tests probe that no secret reaches stored
+    events, the database files, or logs.
+    *Amended 2026-10-10 (S2): the original wording said probes "fail the
+    write". Refusing the write would drop audit events, including denied
+    attempts, so the filter redacts instead.*
 - **Idempotency:** review actions, artifact returns, and job steps carry
   idempotency keys with unique constraints. A duplicate becomes a no-op that
   is still audited.

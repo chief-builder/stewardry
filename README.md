@@ -14,9 +14,15 @@ evals, offline replays, and scripted examples are always labeled separately.
 
 ## Status
 
-Milestone 1 is in progress. Step S0 (repository skeleton and quality gate)
-is done. Step S1 adds storage: the SQLite schema, migrations, and a
-content-addressed artifact store. There is no workflow behavior yet. See the
+Milestone 1 is in progress. Done so far:
+
+- **S0:** the repository skeleton and quality gate.
+- **S1:** storage: the SQLite schema, migrations, and a content-addressed
+  artifact store.
+- **S2:** an append-only, hash-chained audit log with secret redaction,
+  through `stewardry audit verify` and `stewardry audit anchor`.
+
+There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
 
 ## Quickstart
