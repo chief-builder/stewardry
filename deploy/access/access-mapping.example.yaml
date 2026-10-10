@@ -1,0 +1,48 @@
+# Access mapping example (ADR 0008). Apply with:
+#   stewardry roles apply deploy/access/access-mapping.yaml --as <platform engineer sub>
+# The first apply on an empty database uses --bootstrap, which is allowed only
+# while no platform engineer exists and only if this file makes the acting
+# user one.
+#
+# `sub` is the hub subject. alice and bob use the fixed IDs from the broker's
+# test realm. The other subjects are placeholders until `stewardry hub
+# bootstrap` (Milestone 1, step S14) creates those users and reports theirs.
+# Hub group claims are never used for authority; only this file is.
+schema_version: 1
+customers:
+  - customer_id: larkspur-synthetic
+    display_name: Larkspur Analytics (synthetic)
+  - customer_id: quillon-synthetic
+    display_name: Quillon Freight (synthetic)
+users:
+  - username: alice
+    sub: a11ce000-0000-4000-8000-000000000001
+    display_name: Alice (Sales, synthetic persona)
+    roles: [sales]
+    customers: [larkspur-synthetic]
+  - username: bob
+    sub: b0b00000-0000-4000-8000-000000000002
+    display_name: Bob (GRC analyst, synthetic persona)
+    roles: [grc]
+    customers: [larkspur-synthetic, quillon-synthetic]
+  - username: legal
+    sub: replace-with-legal-sub-from-hub-bootstrap
+    display_name: Legal counsel (synthetic persona)
+    roles: [legal]
+    customers: [larkspur-synthetic, quillon-synthetic]
+  - username: platform
+    sub: replace-with-platform-sub-from-hub-bootstrap
+    display_name: Platform engineer (synthetic persona)
+    roles: [platform_engineer]
+  - username: auditor
+    sub: replace-with-auditor-sub-from-hub-bootstrap
+    display_name: Auditor (synthetic persona)
+    roles: [auditor]
+  - username: owner
+    sub: replace-with-owner-sub-from-hub-bootstrap
+    display_name: Engagement owner (synthetic persona)
+    roles: [engagement_owner]
+  - username: sme
+    sub: replace-with-sme-sub-from-hub-bootstrap
+    display_name: Subject-matter expert (synthetic persona)
+    roles: [sme]
