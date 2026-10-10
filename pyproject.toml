@@ -1,0 +1,51 @@
+[project]
+name = "stewardry"
+version = "0.0.1"
+description = "A thin internal agent platform with user-scoped permissions, controls, evals, and audit (synthetic portfolio project)"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = []
+
+[project.scripts]
+stewardry = "stewardry.cli:main"
+
+[dependency-groups]
+dev = [
+    "mypy==2.3.1",
+    "pip-audit==2.10.1",
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "ruff==0.16.9",
+    "zizmor==1.30.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv]
+# Supply-chain cooldown (ADR 0001): nothing newer than this date is resolved.
+# `make lock` moves it to 14 days before today and re-locks.
+exclude-newer = "2026-09-26T00:00:00Z"
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q --strict-markers --cov=stewardry --cov-report=term-missing --cov-fail-under=90"
+
+[tool.coverage.run]
+branch = true

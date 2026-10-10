@@ -6,3 +6,10 @@
 __pycache__/
 *.pyc
 /data/
+.coverage
+coverage.xml
+dist/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.audit-requirements.txt
