@@ -213,3 +213,60 @@ def test_registry_schema_and_missing_database(
     assert '"title": "AgentPolicyFile"' in capsys.readouterr().out
     monkeypatch.setenv("STEWARDRY_DATA_DIR", str(tmp_path / "data"))
     assert main(["registry", "show", "questionnaire-agent"]) == 2
+
+
+MAPPING_FILE = str(
+    Path(__file__).resolve().parents[2] / "deploy/access/access-mapping.example.yaml"
+)
+PLATFORM_SUB = "replace-with-platform-sub-from-hub-bootstrap"
+
+
+def test_roles_bootstrap_apply_and_show(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _migrated(tmp_path, monkeypatch)
+    capsys.readouterr()
+    assert main(["roles", "apply", MAPPING_FILE, "--as", PLATFORM_SUB]) == 1
+    assert "requires the platform_engineer role" in capsys.readouterr().err
+
+    assert main(["roles", "apply", MAPPING_FILE, "--as", PLATFORM_SUB, "--bootstrap"]) == 0
+    out = capsys.readouterr().out
+    assert "users added: alice" in out and "access mapping applied" in out
+
+    assert main(["roles", "apply", MAPPING_FILE, "--as", PLATFORM_SUB]) == 0
+    assert "users added" not in capsys.readouterr().out  # declarative: nothing changes
+
+    assert main(["roles", "show"]) == 0
+    out = capsys.readouterr().out
+    assert "alice (a11ce000-0000-4000-8000-000000000001): roles=sales" in out
+    assert "customers=larkspur-synthetic" in out
+    assert main(["audit", "verify"]) == 0
+
+
+def test_roles_remap_flag(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _migrated(tmp_path, monkeypatch)
+    assert main(["roles", "apply", MAPPING_FILE, "--as", PLATFORM_SUB, "--bootstrap"]) == 0
+    changed = tmp_path / "mapping.yaml"
+    changed.write_text(
+        Path(MAPPING_FILE).read_text().replace("a11ce000-0000-4000-8000-000000000001", "new-sub")
+    )
+    capsys.readouterr()
+    assert main(["roles", "apply", str(changed), "--as", PLATFORM_SUB]) == 1
+    assert "--remap alice" in capsys.readouterr().err
+    assert main(["roles", "apply", str(changed), "--as", PLATFORM_SUB, "--remap", "alice"]) == 0
+    assert "users remapped: alice" in capsys.readouterr().out
+
+
+def test_roles_commands_need_a_database_and_a_valid_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("STEWARDRY_DATA_DIR", str(tmp_path / "data"))
+    assert main(["roles", "show"]) == 2
+    _migrated(tmp_path, monkeypatch)
+    bad = tmp_path / "bad.yaml"
+    bad.write_text("schema_version: 1\ncustomers: []\nusers: []\n")
+    capsys.readouterr()
+    assert main(["roles", "apply", str(bad), "--as", "x", "--bootstrap"]) == 1
+    assert "at least one platform_engineer" in capsys.readouterr().err
