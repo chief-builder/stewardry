@@ -102,3 +102,7 @@ jobs:
             README.md CLAUDE.md SECURITY.md THREAT_MODEL.md 'docs/**/*.md'
           fail: true
           token: ${{ github.token }}
+      - name: Links pinned to a commit SHA (GitHub API)
+        run: make pinned-links
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
