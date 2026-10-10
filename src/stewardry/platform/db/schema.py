@@ -303,3 +303,44 @@ artifacts = Table(
     CheckConstraint(_one_of("kind", ARTIFACT_KINDS), name="kind_known"),
 )
 Index("ix_artifacts_sha256", artifacts.c.sha256)
+
+AUDIT_OUTCOMES = ("succeeded", "denied", "failed")
+GENESIS_HASH = "0" * 64
+
+# Append-only (enforced by triggers in migration 0002) and hash-chained.
+# No foreign keys: a denied attempt may name an agent, user, or task that
+# does not exist, and audit rows must outlive the rows they describe.
+audit_events = Table(
+    "audit_events",
+    metadata,
+    Column("seq", Integer, primary_key=True, autoincrement=False),
+    Column("event_id", String(32), nullable=False, unique=True),
+    Column("occurred_at", UTCTimestamp, nullable=False),
+    Column("event_type", String(64), nullable=False),
+    Column("outcome", String(16), nullable=False),
+    Column("actor_sub", String(255)),
+    Column("requester_sub", String(255)),
+    Column("authorizing_sub", String(255)),
+    Column("reviewer_sub", String(255)),
+    Column("agent_id", String(64)),
+    Column("policy_hash", String(64)),
+    Column("customer_id", String(64)),
+    Column("task_id", String(32)),
+    Column("run_id", String(32)),
+    Column("grant_id", String(32)),
+    Column("correlation_id", String(64)),
+    Column("details_json", Text, nullable=False),
+    Column("prev_hash", String(64), nullable=False),
+    Column("event_hash", String(64), nullable=False, unique=True),
+    CheckConstraint("seq >= 1", name="seq_positive"),
+    CheckConstraint(_one_of("outcome", AUDIT_OUTCOMES), name="outcome_known"),
+    CheckConstraint(
+        "length(event_type) BETWEEN 3 AND 64 AND event_type GLOB '[a-z]*.[a-z]*'"
+        " AND event_type NOT GLOB '*[^a-z0-9_.]*'",
+        name="event_type_dotted",
+    ),
+    CheckConstraint(_sha256("prev_hash"), name="prev_hash_sha256"),
+    CheckConstraint(_sha256("event_hash"), name="event_hash_sha256"),
+)
+Index("ix_audit_events_task_id", audit_events.c.task_id)
+Index("ix_audit_events_correlation_id", audit_events.c.correlation_id)
