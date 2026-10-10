@@ -19,7 +19,7 @@ def test_secret_shapes_are_reported_without_their_value(tmp_path: Path) -> None:
 
     found = findings([planted], tmp_path)
 
-    assert found == ["config.txt:2: looks like a Anthropic API key"]
+    assert found == ["config.txt:2: looks like a anthropic-api-key value"]
     assert fake_key not in found[0]
 
 

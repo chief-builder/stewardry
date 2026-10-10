@@ -4,19 +4,11 @@ Prints file and line number only, never the matched text.
 Usage: python tools/check_secrets.py [root]
 """
 
-import re
 import subprocess
 import sys
 from pathlib import Path
 
-PATTERNS = {
-    "Anthropic API key": re.compile(r"sk-ant-[A-Za-z0-9_-]{20,}"),
-    "GitHub token": re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}"),
-    "private key": re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
-    "JWT": re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),
-    "bearer header": re.compile(r"(?i)authorization:\s*bearer\s+[A-Za-z0-9._~+/-]{20,}"),
-    "AWS access key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
-}
+from stewardry.platform.redaction import PATTERNS
 
 
 def tracked_files(root: Path) -> list[Path]:
@@ -40,7 +32,7 @@ def findings(paths: list[Path], root: Path) -> list[str]:
         for number, line in enumerate(lines, start=1):
             for name, pattern in PATTERNS.items():
                 if pattern.search(line):
-                    found.append(f"{path.relative_to(root)}:{number}: looks like a {name}")
+                    found.append(f"{path.relative_to(root)}:{number}: looks like a {name} value")
     return found
 
 
