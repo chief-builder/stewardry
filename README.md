@@ -21,6 +21,9 @@ Milestone 1 is in progress. Done so far:
   artifact store.
 - **S2:** an append-only, hash-chained audit log with secret redaction,
   through `stewardry audit verify` and `stewardry audit anchor`.
+- **S3:** the agent registry and lifecycle. Per-agent policy files live in
+  `policies/agents/`, checked against `policies/platform-baseline.yaml`, and
+  are managed with `stewardry registry`.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
