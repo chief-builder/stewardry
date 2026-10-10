@@ -325,7 +325,6 @@ Atlassian accounts.
     broker stopped and hub stopped → `unavailable`; a declined or cancelled
     elicitation; revoke-pending if it can be produced.
   - Disconnect → `needs_consent`.
-  - Disconnect → `needs_consent`.
   - Alice's credential is never used for Bob's run.
   - No token material in Stewardry's logs or audit (mirroring the broker's
     container-log test).
@@ -359,7 +358,7 @@ Atlassian accounts.
     change;
   - consent, disconnect, and outage behavior on the real stack.
 - **Controls:** read-only tools only. No write operations exist in the
-  adapter. Hub users and the `stewardry` client come from the S14b
+  adapter. Hub users and the `stewardry` client come from the S14
   bootstrap. In-memory custody (G1) means the stack must not be recreated
   during the session; if it is, reconnects are recorded.
 - **Tests:** the connected suite (`pytest -m connected`), run manually. It
