@@ -29,7 +29,8 @@ def test_downgrade_to_base_removes_every_table(engine: Engine) -> None:
 def test_upgrade_is_repeatable(engine: Engine) -> None:
     migrate.upgrade(engine)
     with engine.connect() as conn:
-        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0001"
+        version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
+    assert version == migrate.head_revision() == "0002"
 
 
 def test_round_trip_down_and_up(tmp_path: Path) -> None:

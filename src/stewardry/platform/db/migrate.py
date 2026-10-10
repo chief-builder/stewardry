@@ -2,6 +2,7 @@
 
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from sqlalchemy import Engine
 
 SCRIPT_LOCATION = "stewardry.platform.db:migrations"
@@ -20,3 +21,12 @@ def upgrade(engine: Engine, revision: str = "head") -> None:
 
 def downgrade(engine: Engine, revision: str) -> None:
     command.downgrade(_config(engine), revision)
+
+
+def head_revision() -> str:
+    config = Config()
+    config.set_main_option("script_location", SCRIPT_LOCATION)
+    head = ScriptDirectory.from_config(config).get_current_head()
+    if head is None:
+        raise RuntimeError("no migrations found")
+    return head
