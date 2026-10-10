@@ -50,3 +50,7 @@ Stewardry depends on
 at commit `20d1426622a0c05478c4331b82ad8952411f9a4a` for user-scoped
 Atlassian access. Python dependencies are locked with hashes in `uv.lock`,
 under a 14-day release cooldown (see ADR 0001).
+
+## License
+
+[MIT](LICENSE).

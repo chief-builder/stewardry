@@ -3,6 +3,8 @@ name = "stewardry"
 version = "0.0.1"
 description = "A thin internal agent platform with user-scoped permissions, controls, evals, and audit (synthetic portfolio project)"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.14,<3.15"
 dependencies = []
 
