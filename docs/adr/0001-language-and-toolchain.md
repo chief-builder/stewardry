@@ -1,6 +1,6 @@
 # ADR 0001: Python 3.14 and toolchain
 
-Status: Proposed · 2026-10-10
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
 
 ## Context
 

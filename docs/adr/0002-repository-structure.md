@@ -1,6 +1,6 @@
 # ADR 0002: Repository structure
 
-Status: Proposed · 2026-10-10
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
 
 ## Decision
 

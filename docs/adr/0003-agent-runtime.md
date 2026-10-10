@@ -1,6 +1,9 @@
 # ADR 0003: Agent runtime
 
-Status: Proposed · 2026-10-10
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
+
+The owner accepted the Python Anthropic SDK "for now" and may move to the
+Vercel AI SDK later. See [Possible future change](#possible-future-change).
 
 ## Context
 
@@ -87,3 +90,22 @@ testable. No runtime brings its own tools, filesystem, or network paths.
 - One process means a restart drops in-memory user credentials. Running
   tasks then pause until the user signs in again (ADR 0006, gap G6). This is
   deliberate.
+
+## Possible future change
+
+The owner may move the agent runtime to the Vercel AI SDK later. That would
+be a new ADR that replaces this one. Nothing is built for it now. Things that
+ADR would need to address:
+
+- **Language.** The Vercel AI SDK is TypeScript. Moving to it reopens
+  ADR 0001 (one language with the broker) and probably ADR 0005 (the web
+  app).
+- **Same controls.** Every tool call must still go through the controlled
+  executor, and the model must still never see credentials or MCP tools.
+  The model boundary must keep recording model ID, prompt version, usage,
+  cost, and limits.
+- **Provider.** Iteration 1 allows only Claude through the Anthropic API
+  (spec section 4.8). A multi-provider SDK must stay configured for that
+  single provider.
+- **Evidence.** A runtime change is a gated change under spec section 7.3.
+  It needs a full live-model eval compared with the last accepted baseline.

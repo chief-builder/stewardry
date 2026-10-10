@@ -1,6 +1,6 @@
 # ADR 0010: Classifying gateway errors without guessing
 
-Status: Proposed · 2026-10-10
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
 
 ## Context
 

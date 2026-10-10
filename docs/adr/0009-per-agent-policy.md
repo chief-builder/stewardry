@@ -1,6 +1,9 @@
 # ADR 0009: Per-agent policy
 
-Status: Proposed · 2026-10-10
+Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
+
+Option 1 is accepted. Option 2 (a Stewardry-only gateway instance) is not
+accepted yet. It is decided at Milestone 1 step S14c.
 
 ## Context
 
