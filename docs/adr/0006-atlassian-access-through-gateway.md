@@ -1,7 +1,8 @@
 # ADR 0006: Atlassian access through the existing gateway
 
-Status: Proposed, blocked on the gap decisions in
-[broker-contracts.md](../broker-contracts.md#gaps-the-broker-cannot-meet-as-is) · 2026-10-10
+Status: Proposed · 2026-10-10. The owner decided G1 (keep the in-memory test
+setup) and G6 (memory-only credentials) on 2026-10-10. See
+[broker-contracts.md](../broker-contracts.md#gaps-the-broker-cannot-meet-as-is).
 
 ## Decision
 
@@ -28,8 +29,8 @@ Status: Proposed, blocked on the gap decisions in
    to disk, logs, the model, or the browser. A task grant records which
    user's credential a run may use. When that credential is missing or
    expired, the run pauses with "awaiting authorization". It never falls back
-   to another identity. This is the proposed answer to gap G6. It needs owner
-   confirmation.
+   to another identity. The owner confirmed this answer to gap G6 on
+   2026-10-10.
 
 **Reason:** this is the documented gateway contract, unchanged. Stewardry
 adds application authorization in front of it and never moves vendor tokens
@@ -46,11 +47,14 @@ across the trust boundary.
 - **A Stewardry service account at Atlassian:** the spec forbids shared
   service accounts.
 - **Storing hub refresh tokens with `offline_access`:** Stewardry would
-  become a long-term credential custodian. This is held back unless the owner
-  chooses it for gap G6.
+  become a long-term credential custodian. The owner rejected it for G6.
 
 ## Consequences
 
 - Connected runs need the hub, gateway, broker, and custody running, plus
   the user's active Stewardry sign-in during drafting.
-- Machine-readable error mapping depends on gap G4.
+- Error mapping follows ADR 0010, the client and role users follow
+  ADR 0008, and per-agent limits follow ADR 0009.
+- With in-memory custody (G1), recreating the stack disconnects every
+  Atlassian account. Users reconnect through consent. That is never a
+  re-registration, and each occurrence is recorded as an operational event.

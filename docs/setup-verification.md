@@ -145,9 +145,13 @@ account prove nothing).
 |---|---|---|---|---|---|
 | | | | | | |
 
-The realm currently has only `alice` and `bob`. Adding hub users and a
-`stewardry` client is gap G2 in [broker-contracts.md](broker-contracts.md).
-Do not add them until the owner chooses an option.
+The realm currently has only `alice` and `bob`. The other hub users and the
+`stewardry` client are added by `stewardry hub bootstrap` (Milestone 1 step
+S14, [ADR 0008](adr/0008-hub-roles-bootstrap.md)). It is run against this
+stack only after this checklist is complete and you give the go-ahead. You
+supply the Keycloak admin credential as `KEYCLOAK_ADMIN_USER` and
+`KEYCLOAK_ADMIN_PASSWORD` in your shell. Generated passwords go to
+`deploy/hub/.secrets.env` (git-ignored) and are never printed.
 
 ## 7. Synthetic content and restrictions (create)
 
@@ -180,4 +184,5 @@ Do not add them until the owner chooses an option.
 | Confluence plan supports restrictions | | | |
 | Account mapping complete and distinct | | | |
 | Restricted page denied to Sales in Atlassian's UI | | | |
-| Gap decisions G1, G2, G4, G6 made | | | |
+| Gap decisions G1, G2, G3, G4, G6 | yes | 2026-10-10 | See broker-contracts.md |
+| Hub bootstrap run against this stack (after go-ahead) | | | |

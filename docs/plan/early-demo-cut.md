@@ -68,8 +68,8 @@ State these plainly in the recording and the README:
   target stays a candidate.
 - **No production or availability claims.** Operating-window measurements
   cover only the recorded windows.
-- **Persistent custody depends on gap G1.** If the dev stack is still in
-  use, the cut states that Atlassian connections reset on restart.
+- **Connections are not persistent (G1: in-memory custody kept).** If the stack is recreated,
+  Atlassian connections reset, and the recording states this.
 
 ## The next cut (optional)
 
@@ -79,6 +79,6 @@ can replace step 7 with:
 - the recorded handoff;
 - the hypercare day count so far, labeled as in progress;
 - the NDA agent in shadow, but only if NDA shadow may overlap hypercare
-  ([open question 15](open-questions.md)).
+  ([open question 13](open-questions.md)).
 
 The complete section 12 demo needs Milestone 3 to be finished.

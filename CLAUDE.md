@@ -108,5 +108,11 @@ Tests are grouped by what they need. Every report names its tier.
   Stewardry.
 - The model cannot approve, transfer authority, grant scopes, or change
   rollout status.
-- Outages are never reported as missing consent.
+- Outages are never reported as missing consent. Consent is detected only
+  from the gateway's structured URL elicitation, never from error text
+  (ADR 0010).
+- The platform baseline denies (`executeRead`, `discover`, writes, foreign
+  `cloudId`) cannot be overridden by any agent policy file (ADR 0009).
+- Roles and authority live in Stewardry's audited role mapping, never in
+  hub group claims (ADR 0008).
 - Audit events never contain tokens or secrets.
