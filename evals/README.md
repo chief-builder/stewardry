@@ -24,3 +24,37 @@ automated assistance and every disagreement are recorded with the report
 
 These are versioned fixtures, not measurements. No results exist until an
 eval run records them, with its provenance label (ADR 0007).
+
+## Running evals
+
+The harness is in `tools/` (`run_evals.py` and `eval_report.py`). It is not
+runtime code, which is why it may read this directory.
+
+| Command | Provenance | What it does |
+|---|---|---|
+| `make check` | `offline-replay` | Replays the recorded four-item smoke scenario (`replay/drafting-smoke/`) and scores it. This is the deterministic subset |
+| `make eval-live` | `live-model-eval` | Drafts all three questionnaires against the live model, with the fixture adapter for Atlassian. Records every call to `replay/full-<date>/` and writes a report and a grading file. Costs money |
+| `make eval-replay RECORDINGS=replay/full-<date>` | `offline-replay` | Replays a recorded baseline offline |
+
+Reports go to `reports/<date>-<suite>-<provenance>.json` and `.md`. Each one
+records:
+
+- the model, effort, and prompt version;
+- the dataset and its SHA-256;
+- the agent policy hash and a control configuration hash (baseline, limits,
+  pricing, catalog);
+- the pricing reference, the code revision, and the `as_of` date.
+
+Rules:
+
+- **Raw and valid completion are reported separately.** A run with a boundary
+  violation is not valid.
+- **Zero-tolerance counts include failed runs.**
+- **Small samples are labeled.** Any rate with fewer than 20 items reads
+  "insufficient data (n=...)".
+- **Automatic checks are labeled as automatic.** These are citation presence
+  and overlap with the expected citations; they are not faithfulness grades.
+- **Correctness is "not graded"** until the author fills in
+  `grades/<report>.yaml`.
+- **Replays spend nothing.** Replay reports show the recorded calls' usage,
+  say that no money was spent, and do not report latency.

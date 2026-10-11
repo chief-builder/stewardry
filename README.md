@@ -66,8 +66,13 @@ Milestone 1 is in progress. Done so far:
   plain status only. GRC reviews drafts with citations, passage text, and
   screening findings, and records shadow verdicts (not approvals). Platform
   engineers, owners, and auditors see the agent registry.
+- **S13:** baseline evals. `make check` replays and scores the recorded
+  smoke scenario. `make eval-live` drafts all three questionnaires against
+  the live model and writes a labeled report with every version that
+  produced it (see [evals/README.md](evals/README.md)). No baseline has been
+  recorded yet.
 
-There are no evals, no approvals, and no export yet. See the
+There are no approvals and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
 
 ## Quickstart
