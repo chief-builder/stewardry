@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block main %}
+<p>Roles: {{ roles | sort | join(", ") or "none" }}.
+   Customers: {{ customers | join(", ") or "none" }}.</p>
+
+{% if "sales" in roles %}
+<section>
+  <h2>Submit a questionnaire request</h2>
+  <form method="post" action="/tasks">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="hidden" name="submission_key" value="{{ submission_key }}">
+    <label>Customer
+      <select name="customer_id">
+        {% for customer in customers %}<option value="{{ customer }}">{{ customer }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Jira request key <input name="jira_issue_key" placeholder="SQR-1"></label>
+    <button type="submit">Submit</button>
+  </form>
+</section>
+{% endif %}
+
+{% if my_tasks %}
+<section>
+  <h2>My requests</h2>
+  <table>
+    <tr><th>Request</th><th>Customer</th><th>Jira</th><th>Status</th></tr>
+    {% for task in my_tasks %}
+    <tr><td>{{ task.task_id[:8] }}</td><td>{{ task.customer_id }}</td>
+        <td>{{ task.jira_issue_key or "" }}</td><td>{{ task.status }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+
+{% if "grc" in roles %}
+<section>
+  <h2>Waiting for drafting authorization</h2>
+  {% if reviewable %}
+  <table>
+    <tr><th>Request</th><th>Customer</th><th>Jira</th><th>Status</th><th></th></tr>
+    {% for task in reviewable %}
+    <tr><td>{{ task.task_id[:8] }}</td><td>{{ task.customer_id }}</td>
+        <td>{{ task.jira_issue_key or "" }}</td><td>{{ task.status }}</td>
+        <td><form method="post" action="/tasks/{{ task.task_id }}/authorize">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <button type="submit">Authorize drafting under my identity</button>
+        </form></td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<p>Nothing is waiting.</p>{% endif %}
+
+  {% if my_grants %}
+  <h2>My active grants</h2>
+  <table>
+    <tr><th>Request</th><th>Stage</th><th>Expires (UTC)</th><th></th></tr>
+    {% for grant in my_grants %}
+    <tr><td>{{ grant.task_id[:8] }}</td><td>{{ grant.stage }}</td>
+        <td>{{ grant.expires_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td><form method="post" action="/grants/{{ grant.grant_id }}/revoke">
+          <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+          <input name="reason" placeholder="Reason" required>
+          <button type="submit">Revoke</button>
+        </form></td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}
