@@ -54,10 +54,11 @@ Q12, which S8 needs.
 
 10. **Spec filename.** Keep `docs/stewardry-spec.md`, or rename it to
     `docs/SPEC.md`?
-11. **Templates.** Is one `.xlsx` and one `.docx` template enough for
-    iteration 1, and should I design both?
-12. **Policy domain.** Should the synthetic policies follow a public control
-    framework's topic list, or be fully invented?
+11. **Templates.** *Default applied in S8:* I designed one `.xlsx` and one
+    `.docx` template (`fixtures/templates/`). Keep them, or supply your own?
+12. **Policy domain.** *Default applied in S8:* the policies are fully
+    invented, on the topics spec section 5.2 lists, with no framework text.
+    Keep this, or align the topics to a public framework's list?
 13. **NDA timing.** May NDA shadow overlap hypercare?
 14. **The stack tier in CI.** May CI run the stack tier on pull requests?
     It needs no secrets, and it uses a read-only checkout of

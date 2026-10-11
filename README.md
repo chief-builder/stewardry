@@ -43,6 +43,11 @@ Milestone 1 is in progress. Done so far:
   never takes text for consent (ADR 0010), contract-tested offline against
   unmodified pinned copies of the broker's gateway source and tool snapshot
   in `third_party/`.
+- **S8:** synthetic data and eval separation. There are 21 policy pages for a
+  fictional vendor, three 30-question questionnaires (`.xlsx` and `.docx`)
+  with designed conflict, stale, ambiguous, and adversarial cases, and Jira
+  requests in `fixtures/`. The expected outcomes and rubrics are in `evals/`,
+  which runtime code can never reach.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
