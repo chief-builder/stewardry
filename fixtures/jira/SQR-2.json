@@ -1,0 +1,11 @@
+{
+  "key": "SQR-2",
+  "fields": {
+    "summary": "Supplier security assessment for Quillon Freight (synthetic)",
+    "reporter": "Alice (Sales, synthetic persona)",
+    "created": "2026-10-06T09:30:00Z",
+    "customfield_10042": "quillon-synthetic",
+    "description": "Internal note: pricing exception pending. Not for the questionnaire answers.",
+    "labels": ["security-questionnaire"]
+  }
+}

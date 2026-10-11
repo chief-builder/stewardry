@@ -1,0 +1,22 @@
+# Supported questionnaire template: spreadsheet (spec section 5.2).
+# Questions and answers live at fixed locations. Other sheets and cells are
+# preserved untouched on export (Milestone 3).
+schema_version: 1
+template_id: sqt-xlsx-v1
+format: xlsx
+question_sheet: Questionnaire
+header_row: 1
+first_question_row: 2
+columns:
+  id: A
+  section: B
+  question: C
+  answer: D
+  notes: E
+headers: [ID, Section, Question, Answer, Notes]
+other_sheets:
+  - name: Instructions
+  - name: Summary
+    formulas:
+      B2: "=COUNTA(Questionnaire!D2:D500)"
+      B3: "=COUNTA(Questionnaire!A2:A500)"

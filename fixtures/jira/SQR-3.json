@@ -1,0 +1,11 @@
+{
+  "key": "SQR-3",
+  "fields": {
+    "summary": "Annual security reassessment for Larkspur Analytics (synthetic)",
+    "reporter": "Alice (Sales, synthetic persona)",
+    "created": "2026-10-07T11:15:00Z",
+    "customfield_10042": "larkspur-synthetic",
+    "description": "Internal note: last year's answers were sent by email. Not for the questionnaire answers.",
+    "labels": ["security-questionnaire", "reassessment"]
+  }
+}
