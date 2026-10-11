@@ -36,6 +36,9 @@ Milestone 1 is in progress. Done so far:
   operation is checked against the platform baseline, the run's bound and
   current policy, the acting user's grant, role, customer, and credential,
   and the run's budget. Every decision is audited.
+- **S6:** the model access boundary. Claude calls go through the same
+  authority checks, with budgets, bounded retries, usage and cost under a
+  dated pricing reference, and recording and offline replay.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
@@ -53,6 +56,14 @@ make check
 tests with coverage (network blocked), Markdown link and anchor checks, a
 secret-pattern scan, and workflow linting. `make help` lists the other
 targets: `build`, `audit` (needs network), and `lock`.
+
+The live-model smoke test makes one small, real API call. It needs your
+Anthropic credentials (`ANTHROPIC_API_KEY` or an `ant auth login` profile)
+and costs a fraction of a cent. It never runs in `make check` or CI:
+
+```bash
+make test-live-model
+```
 
 To create or migrate the local database, run `uv run stewardry db upgrade`.
 The data directory defaults to `~/.local/share/stewardry`; set

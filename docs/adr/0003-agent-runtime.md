@@ -60,6 +60,25 @@ the official `anthropic` Python SDK and writes the tool-use loop itself.
 **Reason:** owning the loop makes every enforcement point visible and
 testable. No runtime brings its own tools, filesystem, or network paths.
 
+## Implementation note (S6, 2026-10-10)
+
+`platform/model.py` implements the model boundary:
+
+- **Requests.** `messages.create` is called through `anthropic` 1.8.0, which
+  uses `httpx2`. `max_tokens` comes from `policies/model-limits.yaml`
+  (16,000). `thinking` is omitted, because Claude Opus 5.5 always uses
+  adaptive thinking. Effort comes from the agent's policy through
+  `output_config`. Requests are non-streaming, which is within the SDK's
+  guidance for this size; streaming can be added if long outputs need it.
+- **Retries.** The SDK's own retries are off (`max_retries=0`). Stewardry
+  retries 429, 5xx, and network errors itself, at most 3 attempts, and
+  audits each attempt.
+- **Costs.** Costs come from `policies/model-pricing.yaml`, which names its
+  source (Anthropic's pricing page) and retrieval date (2026-10-10). Each
+  estimate stores that `pricing_ref`.
+- **Refusals** are recorded with their category and returned to the caller.
+  No fallback model is used.
+
 ## Rejected alternatives
 
 - **Claude Agent SDK:** it ships built-in file, shell, and web tools and its

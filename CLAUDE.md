@@ -96,7 +96,7 @@ Tests are grouped by what they need. Every report names its tier.
 |---|---|---|
 | offline | Nothing; network is blocked in tests | Yes |
 | stack | Docker; the broker's stand-in stack from the pinned checkout, no real credentials | CI job without secrets; local opt-in |
-| live-model | An Anthropic API key | No; manual, labeled live-model |
+| live-model | An Anthropic API key (`make test-live-model`) | No; manual, labeled live-model |
 | connected | Real hub users, connected Atlassian test accounts, and an API key | No; manual, labeled connected |
 
 ## Security-critical invariants
