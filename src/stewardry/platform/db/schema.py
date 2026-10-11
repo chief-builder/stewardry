@@ -475,6 +475,36 @@ question_drafts = Table(
     ),
 )
 
+SHADOW_VERDICTS = ("agree", "edit", "reject")
+
+# A GRC reviewer's verdict on a shadow draft (S12), kept for comparison with
+# the agent. It is not an approval and releases nothing. Each submission is
+# its own row; a repeated form submission (same idempotency key) is a no-op.
+shadow_verdicts = Table(
+    "shadow_verdicts",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("task_id", String(32), nullable=False),
+    Column("question_id", String(32), nullable=False),
+    Column("reviewer_sub", ForeignKey("users.sub"), nullable=False),
+    Column("verdict", String(16), nullable=False),
+    Column("edited_answer", Text),
+    Column("reason", Text),
+    Column("idempotency_key", String(64), nullable=False, unique=True),
+    Column("created_at", UTCTimestamp, nullable=False),
+    ForeignKeyConstraint(
+        ["task_id", "question_id"], ["question_drafts.task_id", "question_drafts.question_id"]
+    ),
+    CheckConstraint(_one_of("verdict", SHADOW_VERDICTS), name="verdict_known"),
+    CheckConstraint(
+        "verdict != 'edit' OR coalesce(length(edited_answer), 0) > 0", name="edit_has_answer"
+    ),
+    CheckConstraint(
+        "verdict != 'reject' OR coalesce(length(reason), 0) > 0", name="reject_has_reason"
+    ),
+)
+Index("ix_shadow_verdicts_task_id", shadow_verdicts.c.task_id)
+
 AUDIT_OUTCOMES = ("succeeded", "denied", "failed")
 GENESIS_HASH = "0" * 64
 
