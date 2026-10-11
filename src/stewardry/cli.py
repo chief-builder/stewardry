@@ -10,7 +10,7 @@ from sqlalchemy import Engine
 
 from stewardry import __version__
 from stewardry.config import DataDirError, database_path, ensure_data_dir, resolve_data_dir
-from stewardry.platform import audit, registry
+from stewardry.platform import access, audit, registry
 from stewardry.platform.audit import AuditLog
 from stewardry.platform.db import migrate
 from stewardry.platform.db.engine import make_engine
@@ -203,6 +203,65 @@ def _add_registry_commands(commands: Any) -> None:
         command.set_defaults(handler=lambda a, action=name: _with_engine(a, action))
 
 
+def _roles(args: argparse.Namespace) -> int:
+    data_dir = _data_dir()
+    engine = _existing_engine(data_dir) if data_dir else None
+    if engine is None:
+        return EXIT_USAGE
+    try:
+        if args.roles_action == "apply":
+            mapping = access.load_access_mapping(Path(args.file))
+            summary = access.apply_access_mapping(
+                engine,
+                AuditLog(),
+                args.actor,
+                mapping,
+                bootstrap=args.bootstrap,
+                remap=frozenset(args.remap or []),
+            )
+            for name, values in summary.__dict__.items():
+                if values:
+                    print(f"{name.replace('_', ' ')}: {', '.join(values)}")
+            print("access mapping applied")
+        else:
+            with engine.connect() as conn:
+                people = access.list_people(conn)
+            for person in people:
+                print(
+                    f"{person.username} ({person.sub}): "
+                    f"roles={','.join(sorted(person.roles)) or '-'} "
+                    f"customers={','.join(sorted(person.customers)) or '-'}"
+                )
+    except access.AccessError as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return EXIT_PROBLEMS
+    finally:
+        engine.dispose()
+    return EXIT_OK
+
+
+def _add_roles_commands(commands: Any) -> None:
+    parser = commands.add_parser("roles", help="users, roles, and customer assignments")
+    sub = parser.add_subparsers(title="roles commands", required=True, dest="roles_action")
+    apply = sub.add_parser("apply", help="apply an access mapping file (declarative)")
+    apply.add_argument("file", help="access mapping YAML (see deploy/access/)")
+    apply.add_argument("--as", dest="actor", required=True, help=AS_HELP)
+    apply.add_argument(
+        "--bootstrap",
+        action="store_true",
+        help="first apply only: allowed while no platform engineer exists",
+    )
+    apply.add_argument(
+        "--remap",
+        action="append",
+        metavar="USERNAME",
+        help="allow this username's hub subject to change (repeatable)",
+    )
+    apply.set_defaults(handler=_roles)
+    show = sub.add_parser("show", help="list users with their active roles and customers")
+    show.set_defaults(handler=_roles)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     install_log_redaction()
     parser = argparse.ArgumentParser(prog="stewardry")
@@ -229,6 +288,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         sub.set_defaults(handler=handler)
 
     _add_registry_commands(commands)
+    _add_roles_commands(commands)
 
     args = parser.parse_args(argv)
     if not hasattr(args, "handler"):

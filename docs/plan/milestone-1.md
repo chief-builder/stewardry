@@ -89,6 +89,11 @@ Atlassian accounts.
 
 ### S4. Identity, sessions, roles, and task grants (with a local test issuer)
 
+*Delivered in two pull requests:* **S4a** covers the access mapping, task
+submission, grants, and identity resolution, with no web code. **S4b** covers
+the FastAPI app, OIDC sign-in against the test issuer, sessions, CSRF, and
+the web routes on top of S4a.
+
 - **Delivers:**
   - A FastAPI app shell with OIDC sign-in (Authlib), tested against an
     in-process test issuer that signs with PS256.

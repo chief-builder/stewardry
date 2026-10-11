@@ -144,6 +144,28 @@ customers = Table(
     CheckConstraint(_slug("customer_id"), name="customer_id_slug"),
 )
 
+# Which customers a user may act for (spec section 3: Sales works for the
+# assigned customer). Every task action checks it; cross-customer access is
+# a zero-tolerance failure (spec section 7.2).
+customer_assignments = Table(
+    "customer_assignments",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("sub", ForeignKey("users.sub"), nullable=False),
+    Column("customer_id", ForeignKey("customers.customer_id"), nullable=False),
+    Column("assigned_by_sub", ForeignKey("users.sub"), nullable=False),
+    Column("assigned_at", UTCTimestamp, nullable=False),
+    Column("revoked_at", UTCTimestamp),
+    CheckConstraint("revoked_at IS NULL OR revoked_at >= assigned_at", name="revoked_after"),
+)
+Index(
+    "uq_customer_assignments_active",
+    customer_assignments.c.sub,
+    customer_assignments.c.customer_id,
+    unique=True,
+    sqlite_where=text("revoked_at IS NULL"),
+)
+
 agents = Table(
     "agents",
     metadata,

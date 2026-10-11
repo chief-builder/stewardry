@@ -24,6 +24,10 @@ Milestone 1 is in progress. Done so far:
 - **S3:** the agent registry and lifecycle. Per-agent policy files live in
   `policies/agents/`, checked against `policies/platform-baseline.yaml`, and
   are managed with `stewardry registry`.
+- **S4a:** the access mapping, applied with `stewardry roles apply` (users,
+  roles, and customer assignments; bootstrap and explicit remap), plus task
+  submission, drafting grants, and identity resolution with no fallback
+  identity. Web sign-in comes in S4b.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).

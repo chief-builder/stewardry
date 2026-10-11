@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S3 (agent registry), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S4a (access mapping and task grants), 2026-10-10. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -45,7 +45,10 @@ flowchart LR
 | Threat | Planned control | Lands in |
 |---|---|---|
 | Prompt injection in questionnaires or NDAs | Text treated as data; authorization checked on every call; the model cannot approve; screening only supplements | S5, S9, S11, Milestone 2 |
-| Wrong acting user or identity swap | Task grants bound to the authenticated `sub`; no fallback identity | S4, S5 |
+| Wrong acting user or identity swap | Task grants bound to the authorizing subject. The acting identity comes only from the active grant, never from task fields. A missing credential, an expired or revoked grant, a paused agent, or a lost customer assignment pauses the task with no fallback. Mutation-tested in S4a | S4a, S4b, S5 |
+| Cross-customer access | Customer assignments in the access mapping, checked at submission, at authorization, and again when a run acquires its identity | S4a, S5 |
+| Self-authorization (one person acting as both requester and reviewer) | The requester cannot authorize their own task, even if they hold a drafting role | S4a |
+| Changed hub subject reusing a known username | Sign-in is refused until a platform engineer re-maps it with an explicit flag. The old row keeps its history | S4a |
 | Over-broad Atlassian reads (`executeRead`, `discover`) | Per-agent policy and platform baseline denies in Stewardry. From S3, applying a policy that names anything outside the baseline is refused and audited; runtime enforcement on every call lands in S5 and S7 | S3, S5, S7 (ADR 0009) |
 | An agent keeps running after it is paused or retired, or a model or tool change skips evaluation | Registry lifecycle: `check_runnable` refuses unregistered, discovery-stage, paused, and retired agents, and is called at every controlled boundary from S5. A change to model, operations, or model tools requires an accepted eval before shadow or later | S3, S5 |
 | Unauthorized registry or lifecycle change | Role checks against Stewardry's role mapping (platform engineer and engagement owner); refusals are audited as `denied` | S3 |
@@ -91,13 +94,13 @@ These are the broker's documented limitations. Stewardry does not hide them:
 - The test hub and custody run in dev mode with in-memory storage (G1).
   Restarts disconnect every Atlassian account.
 
-## Interim limitation: CLI identity (until S4)
+## Interim limitation: CLI identity (until S4b)
 
-The `stewardry registry` commands take `--as <sub>`. The CLI is a local
+The `stewardry registry` and `stewardry roles` commands take `--as <sub>`. The CLI is a local
 administrative tool. That subject is **asserted by the operator**, not
 authenticated: it is checked against Stewardry's role mapping and recorded
 in the audit log, but anyone with shell access to the data directory could
-assert any subject. Authenticated sign-in arrives with the web app in S4.
+assert any subject. Authenticated sign-in arrives with the web app in S4b.
 Until then, registry changes made through the CLI are attributed, not
 authenticated.
 

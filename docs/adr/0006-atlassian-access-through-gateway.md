@@ -30,6 +30,35 @@ Status: Accepted · 2026-10-10 (owner review of chief-builder/stewardry#1)
    to another identity. The owner confirmed this answer to gap G6 on
    2026-10-10.
 
+### Task grants, lifetime, and revocation (implemented in S4a)
+
+Spec section 4.3.2 asks for these to be documented:
+
+- **Who authorizes.** A user whose role is listed for the stage in the
+  agent's policy (GRC for drafting) authorizes work under their own hub
+  subject. They must be assigned to the task's customer, and they cannot be
+  the task's requester. Sales submission authorizes only intake reads under
+  the requester's own identity.
+- **What a grant binds.** A grant ties the task, the stage, the authorizing
+  subject, the agent's policy version at the time of authorization, a
+  granted time, and an expiry. A run's acting identity comes only from this
+  grant (`grants.acquire_execution`), never from task fields or caller
+  arguments.
+- **Lifetime.** 8 hours by default, at most 24 hours. Grants do not renew
+  themselves. When a grant expires, the task pauses until someone authorizes
+  it again.
+- **Credential renewal.** This is separate from the grant. The authorizing
+  user's gateway credential is held in memory only, and refreshing it within
+  the hub session is S4b work. A restart, a sign-out, or an expired
+  credential pauses the task.
+- **Cancellation and revocation.** The authorizing user or a platform
+  engineer can revoke a grant, with a reason. The task pauses. Re-authorizing
+  creates a new grant.
+- **No fallback.** If the grant is missing, expired, or revoked; the
+  authorizer's credential is unavailable; the agent is paused; or the
+  authorizer has lost the customer assignment, the task pauses and the
+  refusal is audited. Another user's credential is never used.
+
 **Reason:** this is the documented gateway contract, unchanged. Stewardry
 adds application authorization in front of it and never moves vendor tokens
 across the trust boundary.

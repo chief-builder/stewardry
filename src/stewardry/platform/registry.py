@@ -16,9 +16,15 @@ from typing import Any, NoReturn
 
 from sqlalchemy import Connection, Engine, Row, insert, select, update
 
-from stewardry.platform.audit import AuditEvent, AuditLog
+from stewardry.platform.audit import AuditEvent, AuditLog, record_now
 from stewardry.platform.db.schema import agent_policy_versions, agents, users, utcnow
-from stewardry.platform.policy import AgentPolicyFile, PlatformBaseline, PolicyError, gated_changes
+from stewardry.platform.policy import (
+    AgentPolicyFile,
+    PlatformBaseline,
+    Policy,
+    PolicyError,
+    gated_changes,
+)
 from stewardry.platform.roles import active_roles
 
 PLATFORM_ENGINEER = "platform_engineer"
@@ -78,17 +84,13 @@ def _refuse(
     error: type[RegistryError] = RegistryError,
     outcome: str = "denied",
 ) -> NoReturn:
-    with engine.begin() as conn:
-        log.append(
-            conn,
-            AuditEvent(
-                event_type,
-                outcome,
-                actor_sub=actor_sub,
-                agent_id=agent_id,
-                details={"reason": reason},
-            ),
-        )
+    record_now(
+        engine,
+        log,
+        AuditEvent(
+            event_type, outcome, actor_sub=actor_sub, agent_id=agent_id, details={"reason": reason}
+        ),
+    )
     raise error(reason)
 
 
@@ -114,6 +116,14 @@ def current_policy_version(conn: Connection, agent_id: str) -> Row[Any] | None:
         .order_by(agent_policy_versions.c.id.desc())
         .limit(1)
     ).first()
+
+
+def current_policy(conn: Connection, agent_id: str) -> tuple[Row[Any], Policy] | None:
+    """The agent's current policy version row and its parsed policy."""
+    version = current_policy_version(conn, agent_id)
+    if version is None:
+        return None
+    return version, Policy.model_validate(json.loads(version.policy_json)["policy"])
 
 
 def _sub_for(conn: Connection, username: str) -> str | None:

@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Connection, insert, select, text
+from sqlalchemy import Connection, Engine, insert, select, text
 
 from stewardry.platform.db.schema import (
     AUDIT_OUTCOMES,
@@ -142,6 +142,13 @@ class AuditLog:
         row["event_hash"] = event_hash(row)
         conn.execute(insert(audit_events).values({**row, "occurred_at": occurred_at}))
         return Appended(row["seq"], row["event_id"], row["event_hash"], frozenset(found))
+
+
+def record_now(engine: Engine, log: AuditLog, event: AuditEvent) -> Appended:
+    """Append in a transaction of its own. Used for refusals: the action rolls
+    back, but the record that it was refused must commit (spec section 4.5)."""
+    with engine.begin() as conn:
+        return log.append(conn, event)
 
 
 # ------------------------------------------------------------------ anchors
