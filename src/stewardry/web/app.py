@@ -28,7 +28,7 @@ from stewardry.platform import access, grants
 from stewardry.platform.artifacts import ArtifactStore
 from stewardry.platform.audit import AuditEvent, AuditLog, record_now
 from stewardry.platform.credentials import CredentialStore, GatewayCredential
-from stewardry.platform.db.schema import task_grants, tasks, utcnow
+from stewardry.platform.db.schema import question_drafts, task_grants, tasks, utcnow
 from stewardry.platform.roles import active_roles
 from stewardry.web import views
 from stewardry.web.hub import HubClient, HubError, HubRejected, HubUnavailable
@@ -396,7 +396,7 @@ def create_app(services: Services) -> FastAPI:
     def upload(
         task_id: str, session: SessionDep, file: Annotated[UploadFile, File()]
     ) -> RedirectResponse:
-        own_task(session, task_id, "upload")
+        task = own_task(session, task_id, "upload")
         data = file.file.read(MAX_BYTES + 1)
         try:
             ingest_questionnaire(
@@ -410,7 +410,8 @@ def create_app(services: Services) -> FastAPI:
             )
         except IngestRefused as exc:
             raise Problem(400, f"Upload refused: {exc}") from exc
-        return RedirectResponse(f"/tasks/{task_id}", status_code=303)
+        # Redirect targets come from stored IDs, never from the request.
+        return RedirectResponse(f"/tasks/{task.task_id}", status_code=303)
 
     def reviewable_task(session: Session, task_id: str) -> Any:
         with services.engine.connect() as conn:
@@ -468,7 +469,14 @@ def create_app(services: Services) -> FastAPI:
             )
         except review.ReviewRefused as exc:
             raise Problem(403, f"Verdict refused: {exc}.") from exc
-        return RedirectResponse(f"/review/{task_id}#{question_id}", status_code=303)
+        with services.engine.connect() as conn:
+            draft = conn.execute(
+                select(question_drafts.c.task_id, question_drafts.c.question_id).where(
+                    question_drafts.c.task_id == task_id,
+                    question_drafts.c.question_id == question_id,
+                )
+            ).one()
+        return RedirectResponse(f"/review/{draft.task_id}#{draft.question_id}", status_code=303)
 
     @app.get("/registry", response_class=HTMLResponse)
     def registry_page(
