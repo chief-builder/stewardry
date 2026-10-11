@@ -64,7 +64,7 @@ eval-replay: install  ## Replay a baseline offline: make eval-replay RECORDINGS=
 	$(RUN) python -m tools.run_evals --mode replay --suite full --recordings $(RECORDINGS) $(if $(GRADES),--grades $(GRADES))
 
 test-stack: install  ## Stack tier: throwaway Keycloak from the broker's pinned image (needs Docker)
-	STEWARDRY_STACK=1 $(RUN) pytest -m stack --no-cov -s tests/stack
+	STEWARDRY_STACK=1 $(RUN) pytest -m stack --no-cov -s --tb=short tests/stack
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py

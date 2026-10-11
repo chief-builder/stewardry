@@ -49,6 +49,9 @@ def test_first_run_adds_the_client_and_personas(tmp_path: Path) -> None:
     assert client["serviceAccountsEnabled"] is False
     assert client["attributes"]["pkce.code.challenge.method"] == "S256"
     assert "offline_access" not in json.dumps(client)
+    (mapper,) = client["protocolMappers"]  # only the username claim, ID token only
+    assert mapper["config"]["claim.name"] == "preferred_username"
+    assert mapper["config"]["access.token.claim"] == "false"
     for user in fake.imported:
         assert "groups" not in user and "realmRoles" not in user
         assert user["credentials"][0]["temporary"] is False

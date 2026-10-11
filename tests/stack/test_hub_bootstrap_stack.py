@@ -95,6 +95,8 @@ def test_the_client_has_only_the_agreed_settings(bootstrapped: dict[str, Any]) -
     assert "offline_access" not in client.get("optionalClientScopes", [])
     assert "offline_access" not in client.get("defaultClientScopes", [])
     assert "mcp-gateway" in client.get("optionalClientScopes", [])
+    names = [m["name"] for m in client.get("protocolMappers", [])]
+    assert names == ["stewardry-username"]
 
 
 def test_fixed_ids_after_partial_import(bootstrapped: dict[str, Any]) -> None:
@@ -116,12 +118,17 @@ def _sign_in(app: TestClient, username: str, password: str) -> httpx2.Response:
         page = browser.get(start.headers["location"])
         action = re.search(r'<form[^>]*id="kc-form-login"[^>]*action="([^"]+)"', page.text)
         assert action, "no login form"
+        # Keycloak marks its login cookies Secure even on http://localhost (a
+        # browser treats localhost as a secure context); an HTTP client does not
+        # send Secure cookies over http, so send them explicitly here.
+        cookie = "; ".join(f"{c.name}={c.value}" for c in browser.cookies.jar)
         done = browser.post(
             action[1].replace("&amp;", "&"),
             data={"username": username, "password": password, "credentialId": ""},
+            headers={"Cookie": cookie},
             follow_redirects=False,
         )
-    assert done.status_code == 302, "the hub did not accept the sign-in"
+    assert done.status_code == 302, f"the hub did not accept the sign-in: {done.status_code}"
     location = httpx2.URL(done.headers["location"])
     assert str(location).startswith(f"{APP}/auth/callback")
     return app.get("/auth/callback", params=dict(location.params))
