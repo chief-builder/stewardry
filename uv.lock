@@ -1196,6 +1196,7 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "anthropic" },
+    { name = "defusedxml" },
     { name = "fastapi" },
     { name = "httpx2" },
     { name = "jinja2" },
@@ -1225,6 +1226,7 @@ dev = [
 requires-dist = [
     { name = "alembic", specifier = ">=1.20,<2" },
     { name = "anthropic", specifier = ">=1.8,<2" },
+    { name = "defusedxml", specifier = ">=0.7.1,<1" },
     { name = "fastapi", specifier = ">=0.141,<1" },
     { name = "httpx2", specifier = ">=2.13,<3" },
     { name = "jinja2", specifier = ">=3.1,<4" },

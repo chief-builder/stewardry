@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S7 (Atlassian read adapter), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S9 (questionnaire ingest and screening), 2026-10-11. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -46,7 +46,8 @@ flowchart LR
 |---|---|---|
 | A tool call that escapes the run's scope (another user, customer, page, or a raw MCP tool) | Every call goes through `Executor.call`. Identity, agent, customer, and stage come only from the run record. Arguments are schema-checked and may not name users, agents, customers, or credentials. Unknown tools are refused. Operations must be allowed by the baseline, the run's bound version, and the agent's current version, and stay within projects, spaces, and the catalog. Every decision is audited with the bound policy hash | S5 |
 | Runaway or injection-driven tool loops | A tool-call budget per run (the stricter of the bound and current versions), per-operation limits, and a cap of 20 refused calls per run, after which the run fails | S5 |
-| Prompt injection in questionnaires or NDAs | Text treated as data; authorization checked on every call; the model cannot approve; screening only supplements | S5, S9, S11, Milestone 2 |
+| Prompt injection in questionnaires or NDAs | Text treated as data; authorization checked on every call; the model cannot approve. Only visible text in the template's question cells becomes a question. From S9, hidden rows, columns, sheets, and text, comments, tracked changes, text outside the template, and instruction-like phrases are recorded as screening findings for reviewers, with counts per kind audited. Screening is a heuristic and only supplements authorization | S5, S9, S11, Milestone 2 |
+| A malicious upload (macros, external links, XML entity tricks, zip bombs, formulas) | Only `.xlsx` and `.docx` in the published templates. Macro-enabled and legacy formats, macro parts, and external links are refused. Size, part-count, expanded-size, and compression-ratio limits are checked before parsing. XML is parsed with defusedxml. Formulas in question cells are refused. Only the requester can upload, once, before drafting; refusals are audited | S9 |
 | Wrong acting user or identity swap | Task grants bound to the authorizing subject. The acting identity comes only from the active grant, never from task fields. A missing credential, an expired or revoked grant, a paused agent, or a lost customer assignment pauses the task with no fallback. Mutation-tested in S4a | S4a, S4b, S5 |
 | Cross-customer access | Customer assignments in the access mapping, checked at submission, at authorization, and again when a run acquires its identity | S4a, S5 |
 | Self-authorization (one person acting as both requester and reviewer) | The requester cannot authorize their own task, even if they hold a drafting role | S4a |

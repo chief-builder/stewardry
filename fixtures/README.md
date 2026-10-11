@@ -10,8 +10,7 @@ customer, employer, or person data. People appear only as role names.
 |---|---|
 | `policies/SEC-*.md` | 21 security policy pages, published to the synthetic Confluence space `SECPOL` at setup (S15). Front matter carries the owner, dates, version, status, classification, and page ID. Passages are numbered (`5.1`, `5.2`, and so on) so citations have stable locations |
 | `questionnaires/QN-*.yaml` | The questions of three questionnaires (30 each) |
-| `questionnaires/QN-*.xlsx`, `QN-*.docx` | The same questionnaires in the supported templates, built by `make fixtures` |
-| `templates/sqt-*.yaml` | The supported templates: where questions and answers live (spec section 5.2) |
+| `questionnaires/QN-*.xlsx`, `QN-*.docx` | The same questionnaires in the supported templates (defined in `src/stewardry/engagements/questionnaire/templates/`), built by `make fixtures` |
 | `jira/SQR-*.json` | Synthetic Jira requests. `description` holds internal notes that must never reach answers |
 
 ## Cases built in on purpose

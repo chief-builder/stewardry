@@ -345,6 +345,51 @@ artifacts = Table(
 )
 Index("ix_artifacts_sha256", artifacts.c.sha256)
 
+# A task's questions, parsed from its uploaded questionnaire (S9). `location`
+# is the template location (JSON) used to write the answer back on export.
+task_questions = Table(
+    "task_questions",
+    metadata,
+    Column("task_id", ForeignKey("tasks.task_id"), primary_key=True),
+    Column("question_id", String(32), primary_key=True),
+    Column("artifact_id", ForeignKey("artifacts.artifact_id"), nullable=False),
+    Column("ordinal", Integer, nullable=False),
+    Column("section", String(255), nullable=False),
+    Column("text", Text, nullable=False),
+    Column("location_json", Text, nullable=False),
+    UniqueConstraint("task_id", "ordinal"),
+    CheckConstraint("ordinal >= 1", name="ordinal_positive"),
+)
+
+SCREENING_KINDS = (
+    "hidden_cell",
+    "hidden_row",
+    "hidden_column",
+    "hidden_text",
+    "comment",
+    "tracked_change",
+    "outside_template",
+    "instruction_like",
+)
+
+# Untrusted-content findings for reviewers (spec section 4.4). Excerpts may
+# hold customer text, so only reviewer views may show them (S12).
+screening_findings = Table(
+    "screening_findings",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("task_id", ForeignKey("tasks.task_id"), nullable=False),
+    Column("artifact_id", ForeignKey("artifacts.artifact_id"), nullable=False),
+    Column("kind", String(32), nullable=False),
+    Column("location", String(255), nullable=False),
+    Column("question_id", String(32)),
+    Column("reason", String(255)),
+    Column("excerpt", Text, nullable=False),
+    Column("created_at", UTCTimestamp, nullable=False),
+    CheckConstraint(_one_of("kind", SCREENING_KINDS), name="kind_known"),
+)
+Index("ix_screening_findings_task_id", screening_findings.c.task_id)
+
 AUDIT_OUTCOMES = ("succeeded", "denied", "failed")
 GENESIS_HASH = "0" * 64
 
