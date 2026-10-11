@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S6 (model access boundary), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S7 (Atlassian read adapter), 2026-10-10. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -58,7 +58,10 @@ flowchart LR
 | Hub group claims used for authority | Ignored: authority comes only from Stewardry's access mapping (ADR 0008). Tested with `groups: [grc, platform_engineer]` on a Sales user | S4b |
 | Hub tokens reaching the browser, pages, or logs | Tokens are held in server memory only. The browser holds an opaque session ID. Pages are `no-store`, with `Referrer-Policy: no-referrer` and a CSP without scripts. A test scans pages and the audit log for token values | S4b |
 | Unauthorized registry or lifecycle change | Role checks against Stewardry's role mapping (platform engineer and engagement owner); refusals are audited as `denied` | S3 |
-| An outage shown as missing consent | Consent only from structured elicitation; unknown errors fail closed | S7, S14b (ADR 0010) |
+| An outage shown as missing consent | Consent only from a structured elicitation under the broker's authorize path, never from text. The 10 pinned gateway error templates are cataloged and checked against the pinned source. Unmatched errors fail closed (vendor error: the operation is refused; malformed: retry, then pause). Implemented and tested offline in S7; against the stand-in stack in S14b | S7, S14b (ADR 0010) |
+| A consent link shown to the wrong person, or to an attacker-controlled host | Links are accepted only under the configured broker authorize path, returned only to the user's own interactive "Connect Atlassian" action, and never kept from a background run | S7 |
+| Data beyond the allow-list reaching Stewardry (extra Jira fields, pages outside the catalog) | The adapter filters results to allow-listed Jira fields and catalog pages before anyone else sees them | S7 |
+| Drift between Stewardry and the pinned broker | Unmodified vendored copies of the gateway source, the tool snapshot, and the allow-list are hash-checked offline and against the pinned commit in CI. Contract tests compare the error catalog and every sent argument with them | S7 |
 | Credential leakage into logs, prompts, audit, or artifacts | One shared list of secret patterns: the repo scan (S0), redaction of audit events and `stewardry` log records (S2), plus no-token tests | S0, S2, S6, S14b |
 | Local data exposure or accidental commit | Data directory outside any git work tree; directory 0700, and database and artifact files 0600 | S1 |
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |

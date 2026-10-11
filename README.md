@@ -39,6 +39,10 @@ Milestone 1 is in progress. Done so far:
 - **S6:** the model access boundary. Claude calls go through the same
   authority checks, with budgets, bounded retries, usage and cost under a
   dated pricing reference, and recording and offline replay.
+- **S7:** the narrow Atlassian read adapter, with error classification that
+  never takes text for consent (ADR 0010), contract-tested offline against
+  unmodified pinned copies of the broker's gateway source and tool snapshot
+  in `third_party/`.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).

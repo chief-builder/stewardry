@@ -161,6 +161,30 @@ connected verification before connected access is claimed.
 | **G11** | For Atlassian, the broker records `vendor_user_id` as `unknown`. | The broker cannot show which Atlassian account a hub user connected. That is needed to prove distinct accounts (spec section 4.3.2). | Stewardry verifies the mapping with `atlassianUserInfo` per user and records it. This is a Stewardry check, not a broker feature. |
 | **G12** | Inherited limits: the gateway trusts a hub signing key for up to one hour after it is removed; issuer checks are partial; tool lists come from a September 2026 snapshot (live changes are logged, not adopted). | These belong in Stewardry's THREAT_MODEL.md and known limitations, not hidden. | Document them. Add a contract test that pins the snapshot's Atlassian tool names and the argument fields Stewardry uses. |
 
+## Implementation status (S7, 2026-10-10)
+
+- **G4 is implemented as ADR 0010 describes**, in
+  `src/stewardry/platform/atlassian/gateway_errors.py`. Consent comes only
+  from a structured elicitation under the broker's authorize path. The 10
+  gateway `ToolError` templates are cataloged, and a contract test compares
+  them with the pinned `server.py` (vendored unmodified in
+  `third_party/vendor-token-broker/`, checked by hash).
+- **The adapter** (`src/stewardry/platform/atlassian/adapter.py`) sends only
+  the five tools in the table above, with fixed or allow-listed arguments. A
+  contract test checks every tool and argument against the pinned snapshot
+  and allow-list. Another checks that no string in the code names
+  `executeRead`, `discover`, Jira search, or a write tool.
+- **Response shapes are assumptions until S15.** Jira is read as
+  `{key, fields}`, search as `{results: [{content: {id, title, version}}]}`,
+  and a page as `{id, title, version, body}`. They follow the snapshot's
+  descriptions; the snapshot has no output schemas. An unrecognized shape
+  fails the run instead of being guessed at. G7 (version metadata) and G8
+  (the shape of a restricted-page denial) are still open, and are verified
+  in the connected step S15.
+- **Page listing is limited to the policy's catalog** as well as the space.
+  `confluence.list_pages` now names the same catalog as
+  `confluence.read_page`.
+
 ## Compatibility tests Stewardry will own
 
 | Test | Tier |

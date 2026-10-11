@@ -57,6 +57,9 @@ Accuracy and honest labeling matter more than features.
 - **vendor-token-broker** is a dependency pinned at
   `20d1426622a0c05478c4331b82ad8952411f9a4a` and cloned at
   `../vendor-token-broker`. Do not modify that repository.
+- **Vendored files.** `third_party/` holds unmodified upstream copies,
+  checked by hash. Never edit them; re-vendor from a new pinned commit
+  instead.
 - **Git.** Work on branches and open pull requests. Never push to `main`.
   Never force-push. Make small commits with conventional messages (`feat:`,
   `fix:`, `docs:`, `test:`, `chore:`). Keep the first line under 72
