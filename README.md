@@ -83,6 +83,11 @@ Milestone 1 is in progress. Done so far:
   disconnects, identity separation, and token hygiene. `make test-stack` and
   CI both run it. Locally it refuses to start while any `vtb-*` container
   exists.
+- **S14c:** a design check of a Stewardry-only gateway instance, which lists
+  only the five reviewed Atlassian tools and has its own audience and
+  exchange client. It is recommended for Milestone 2
+  ([report](docs/plan/s14c-stewardry-gateway.md)) and is not used in
+  Milestone 1.
 
 There are no approvals and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
