@@ -70,6 +70,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
     "live_model: calls the real Anthropic API; runs only with STEWARDRY_LIVE_MODEL=1 (make test-live-model)",
+    "stack: needs Docker; runs only with STEWARDRY_STACK=1 (make test-stack)",
 ]
 filterwarnings = ["error::ResourceWarning"]
 addopts = "-q --strict-markers --cov=stewardry --cov-report=term-missing --cov-fail-under=90"
