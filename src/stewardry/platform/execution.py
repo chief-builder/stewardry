@@ -97,6 +97,22 @@ Stop = Literal["pause", "fail", "halt"]
 # ------------------------------------------------------------------ types
 
 
+class HandlerStop(Exception):
+    """Raised by a tool handler when the run cannot go on (for example Atlassian
+    needs the user's consent, or stays unavailable). The executor stops the run."""
+
+    def __init__(self, reason: str, kind: Literal["pause", "fail"]) -> None:
+        super().__init__(reason)
+        self.reason = reason
+        self.kind = kind
+
+
+class OperationRefused(Exception):
+    """Raised by a tool handler when the vendor refused this one operation
+    (for example a page the acting user may not view). Audited as denied;
+    the run continues."""
+
+
 class RunStopped(Exception):
     """The run cannot continue. `kind` says whether it was paused or failed."""
 
@@ -135,7 +151,9 @@ class ToolResult:
     error: str | None = None
 
 
-Handler = Callable[[RunContext, BaseModel, GatewayCredential | None], Any]
+Handler = Callable[
+    [RunContext, BaseModel, GatewayCredential | None, EffectiveOperation | None], Any
+]
 
 
 @dataclass(frozen=True)
@@ -216,6 +234,7 @@ class RequestCheck:
     problem: str | None
     needs_credential: bool
     arguments: BaseModel | None = None
+    operation: EffectiveOperation | None = None
 
 
 @dataclass(frozen=True)
@@ -311,7 +330,7 @@ def check_request(
         return RequestCheck(scope, True)
     if op.max_calls_per_run is not None and op_calls_used >= op.max_calls_per_run:
         return RequestCheck(f"operation {call.name} reached its per-run limit", True)
-    return RequestCheck(None, True, args)
+    return RequestCheck(None, True, args, op)
 
 
 # ---------------------------------------------------------------- executor
@@ -517,17 +536,29 @@ class Executor:
         spec = self.tools[call.name]
         credential = self.credentials.get(run.acting_sub, utcnow())
         assert request.arguments is not None  # noqa: S101 - allowed implies parsed
+        names = ["tool_calls"] + ([f"op:{call.name}"] if spec.kind == "operation" else [])
         try:
             content = spec.handler(
-                run, request.arguments, credential if spec.kind == "operation" else None
+                run,
+                request.arguments,
+                credential if spec.kind == "operation" else None,
+                request.operation,
             )
             outcome, result = "succeeded", ToolResult(True, content)
+        except HandlerStop as exc:
+            with self.engine.begin() as conn:
+                increment_counters(conn, run.run_id, *names)
+            self.stop(run, Verdict(False, exc.reason, exc.kind), details)
+        except OperationRefused as exc:
+            outcome, result = "denied", ToolResult(False, error=str(exc))
+            details["reason"] = str(exc)
+            details["refused_by"] = "vendor"
+            names.append("denied_calls")
         except Exception as exc:  # a tool failure is recorded, never fatal to the executor
             outcome = "failed"
             result = ToolResult(False, error=f"tool {call.name} failed")
             details["error_type"] = type(exc).__name__
         with self.engine.begin() as conn:
-            names = ["tool_calls"] + ([f"op:{call.name}"] if spec.kind == "operation" else [])
             increment_counters(conn, run.run_id, *names)
             self.log.append(conn, self.event(run, "tool.call", outcome, details))
         return result
