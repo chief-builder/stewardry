@@ -12,6 +12,7 @@ go outside it.
 
 import hashlib
 import json
+from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -188,3 +189,63 @@ def gated_changes(old_policy_json: str, new: AgentPolicyFile) -> list[str]:
 def json_schema() -> str:
     """The JSON Schema for agent policy files, as committed in policies/."""
     return json.dumps(AgentPolicyFile.model_json_schema(), indent=2, sort_keys=True) + "\n"
+
+
+# ------------------------------------------------------- effective policy
+
+
+@dataclass(frozen=True)
+class EffectiveOperation:
+    """What one operation may do in a run: the intersection of the baseline,
+    the run's bound policy version, and the agent's current version."""
+
+    name: str
+    stage: str
+    projects: frozenset[str]
+    spaces: frozenset[str]
+    catalogs: frozenset[str]
+    max_calls_per_run: int | None
+
+
+def _min_optional(a: int | None, b: int | None) -> int | None:
+    values = [v for v in (a, b) if v is not None]
+    return min(values) if values else None
+
+
+def effective_operation(
+    baseline: PlatformBaseline, bound: Policy, current: Policy, name: str
+) -> EffectiveOperation | None:
+    """None unless the operation is allowed by all three. A permission removed
+    in the current version stops a running run; one added after the run was
+    bound is not used by it (ADR 0009)."""
+    if name not in baseline.operations:
+        return None
+    old, new = bound.operations.get(name), current.operations.get(name)
+    if old is None or new is None or old.stage != new.stage:
+        return None
+    catalogs = {c for c in (old.catalog, new.catalog) if c is not None}
+    return EffectiveOperation(
+        name=name,
+        stage=old.stage,
+        projects=frozenset(old.projects) & frozenset(new.projects) & set(baseline.jira_projects),
+        spaces=frozenset(old.spaces) & frozenset(new.spaces) & set(baseline.confluence_spaces),
+        # Both versions must name the same catalog; a changed catalog means none.
+        catalogs=frozenset(catalogs) if len(catalogs) <= 1 else frozenset(),
+        max_calls_per_run=_min_optional(old.max_calls_per_run, new.max_calls_per_run),
+    )
+
+
+def effective_model_tools(bound: Policy, current: Policy) -> frozenset[str]:
+    return frozenset(bound.model_tools) & frozenset(current.model_tools)
+
+
+def effective_stage_roles(bound: Policy, current: Policy, stage: str) -> frozenset[str]:
+    if stage not in bound.stages or stage not in current.stages:
+        return frozenset()
+    return frozenset(bound.stages[stage].acting_roles) & frozenset(
+        current.stages[stage].acting_roles
+    )
+
+
+def effective_tool_call_budget(bound: Policy, current: Policy) -> int:
+    return min(bound.budgets.per_run_tool_calls, current.budgets.per_run_tool_calls)
