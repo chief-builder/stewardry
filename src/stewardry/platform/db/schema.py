@@ -305,9 +305,14 @@ usage_records = Table(
     Column("input_tokens", Integer),
     Column("output_tokens", Integer),
     Column("cache_read_tokens", Integer),
+    Column("cache_write_tokens", Integer),
     Column("estimated_cost_micro_usd", BigInteger),
     Column("pricing_ref", String(128)),
     Column("latency_ms", Integer),
+    # Added in migration 0005 (S6); nullable because SQLite adds columns that way.
+    Column("request_hash", String(64)),
+    Column("stop_reason", String(32)),
+    Column("attempts", Integer),
     Column("recorded_at", UTCTimestamp, nullable=False),
     CheckConstraint(
         "coalesce(input_tokens, 0) >= 0 AND coalesce(output_tokens, 0) >= 0"
