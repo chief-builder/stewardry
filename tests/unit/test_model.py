@@ -517,3 +517,33 @@ def test_recordings_are_redacted_and_names_checked(tmp_path: Path) -> None:
         store.load("b" * 64)
     with pytest.raises(ValueError, match="only a live transport"):
         RecordingTransport(ReplayTransport(store), store, Redactor())
+
+
+def test_missing_credentials_fail_the_run_with_a_clear_message(
+    world: Engine, log: AuditLog, executor: Executor, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    error = TypeError(
+        '"Could not resolve authentication method. Expected one of api_key, '
+        'auth_token, or credentials to be set."'
+    )
+    with pytest.raises(TransportFatal, match="no Anthropic credentials found"):
+        AnthropicTransport(LIMITS, client=FakeSdk(error)).send({}, "h")
+    with pytest.raises(TypeError, match="unrelated"):
+        AnthropicTransport(LIMITS, client=FakeSdk(TypeError("unrelated"))).send({}, "h")
+
+    run = start(world, log, executor)
+    transport = AnthropicTransport(LIMITS, client=FakeSdk(error))
+    with pytest.raises(RunStopped, match="ANTHROPIC_API_KEY"):
+        access(world, log, executor, transport).call(run, REQUEST)
+    assert status(world, run) == "failed"
+
+
+def test_unexpected_transport_errors_still_fail_the_run_cleanly(
+    world: Engine, log: AuditLog, executor: Executor
+) -> None:
+    run = start(world, log, executor)
+    transport = FakeTransport([KeyError("surprise")])
+    with pytest.raises(RunStopped, match="unexpectedly \\(KeyError\\)"):
+        access(world, log, executor, transport).call(run, REQUEST)
+    assert status(world, run) == "failed"
+    assert model_events(world)[0][1]["error"] == "KeyError"

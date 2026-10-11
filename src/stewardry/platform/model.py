@@ -249,6 +249,13 @@ class AnthropicTransport:
             raise TransportRetryable(type(exc).__name__) from exc
         except anthropic.APIStatusError as exc:
             raise TransportFatal(f"{type(exc).__name__} ({exc.status_code})") from exc
+        except TypeError as exc:
+            # The SDK raises TypeError before sending when it finds no credentials.
+            if "authentication method" in str(exc):
+                raise TransportFatal(
+                    "no Anthropic credentials found; set ANTHROPIC_API_KEY or run `ant auth login`"
+                ) from exc
+            raise
         result: dict[str, Any] = message.to_dict()
         return result
 
@@ -315,6 +322,11 @@ class ModelAccess:
             except TransportFatal as exc:
                 self._audit(run, "failed", base | {"attempt": attempt, "error": str(exc)})
                 self._fail(run, f"model request failed: {exc}")
+            except Exception as exc:
+                # Anything unexpected still leaves the run in a definite, audited state.
+                error = type(exc).__name__
+                self._audit(run, "failed", base | {"attempt": attempt, "error": error})
+                self._fail(run, f"model request failed unexpectedly ({error})")
         latency_ms = int((time.monotonic() - started) * 1000)
 
         usage = Usage.from_response(raw)
