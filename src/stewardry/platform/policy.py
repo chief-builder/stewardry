@@ -202,6 +202,7 @@ class EffectiveOperation:
     name: str
     stage: str
     projects: frozenset[str]
+    fields: frozenset[str]
     spaces: frozenset[str]
     catalogs: frozenset[str]
     max_calls_per_run: int | None
@@ -228,6 +229,7 @@ def effective_operation(
         name=name,
         stage=old.stage,
         projects=frozenset(old.projects) & frozenset(new.projects) & set(baseline.jira_projects),
+        fields=frozenset(old.fields) & frozenset(new.fields),
         spaces=frozenset(old.spaces) & frozenset(new.spaces) & set(baseline.confluence_spaces),
         # Both versions must name the same catalog; a changed catalog means none.
         catalogs=frozenset(catalogs) if len(catalogs) <= 1 else frozenset(),

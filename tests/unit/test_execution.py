@@ -37,23 +37,43 @@ class NoArgs(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-def list_policies(run: RunContext, args: BaseModel, credential: GatewayCredential | None) -> Any:
+def list_policies(
+    run: RunContext,
+    args: BaseModel,
+    credential: GatewayCredential | None,
+    op: Any = None,
+) -> Any:
     SEEN.append(("list_task_policies", None if credential is None else credential.access_token))
     return ["SEC-1", "SEC-2"]
 
 
-def read_page(run: RunContext, args: BaseModel, credential: GatewayCredential | None) -> Any:
+def read_page(
+    run: RunContext,
+    args: BaseModel,
+    credential: GatewayCredential | None,
+    op: Any = None,
+) -> Any:
     assert isinstance(args, ConfluenceReadPageArgs)
     SEEN.append(("read_page", None if credential is None else credential.access_token))
     return {"page_id": args.page_id}
 
 
-def list_pages(run: RunContext, args: BaseModel, credential: GatewayCredential | None) -> Any:
+def list_pages(
+    run: RunContext,
+    args: BaseModel,
+    credential: GatewayCredential | None,
+    op: Any = None,
+) -> Any:
     assert isinstance(args, ConfluenceListPagesArgs)
     return [{"id": "101"}]
 
 
-def broken(run: RunContext, args: BaseModel, credential: GatewayCredential | None) -> Any:
+def broken(
+    run: RunContext,
+    args: BaseModel,
+    credential: GatewayCredential | None,
+    op: Any = None,
+) -> Any:
     raise RuntimeError("upstream exploded with token-bob")
 
 
