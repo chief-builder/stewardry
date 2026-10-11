@@ -1,0 +1,11 @@
+{
+  "key": "SQR-1",
+  "fields": {
+    "summary": "Security questionnaire for Larkspur Analytics (synthetic)",
+    "reporter": "Alice (Sales, synthetic persona)",
+    "created": "2026-10-05T14:02:00Z",
+    "customfield_10042": "larkspur-synthetic",
+    "description": "Internal note: renewal discussion is sensitive. Not for the questionnaire answers.",
+    "labels": ["security-questionnaire"]
+  }
+}

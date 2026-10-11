@@ -5,7 +5,7 @@
 UV ?= uv
 RUN = $(UV) run --frozen
 
-.PHONY: help install lint format typecheck test docs secrets workflows actionlint check build test-live-model pinned-links vendored audit lock
+.PHONY: help install lint format typecheck test docs secrets workflows actionlint check fixtures build test-live-model pinned-links vendored audit lock
 
 help:  ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/'
@@ -42,6 +42,9 @@ actionlint:  ## Lint workflow syntax with the pinned actionlint image (needs Doc
 	docker run --rm --network=none -v "$(CURDIR):/repo:ro" -w /repo $(ACTIONLINT_IMAGE) -color
 
 check: lint typecheck test docs secrets workflows  ## Everything CI checks offline
+
+fixtures: install  ## Rebuild the synthetic questionnaire .xlsx/.docx files from their YAML
+	$(RUN) python tools/build_fixtures.py
 
 build: install  ## Build the wheel and sdist, then check the wheel installs and runs
 	rm -rf dist

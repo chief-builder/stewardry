@@ -1,0 +1,14 @@
+# Supported questionnaire template: document (spec section 5.2).
+# Questions and answers live in the first table. Other content is preserved
+# untouched on export (Milestone 3).
+schema_version: 1
+template_id: sqt-docx-v1
+format: docx
+table_index: 0
+header_row: 0
+columns:
+  id: 0
+  section: 1
+  question: 2
+  answer: 3
+headers: [ID, Section, Question, Answer]
