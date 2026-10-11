@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S5 (controlled execution), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S6 (model access boundary), 2026-10-10. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -64,7 +64,9 @@ flowchart LR
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
 | Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |
 | Audit tampering | Append-only triggers, an insert trigger that only accepts the next link, a hash chain, and anchors. `stewardry audit verify` detects edits, deletions, reordering, and insertions; truncation and full rewrites are detected only against an anchor | S2 |
-| Runaway cost | Per-run and daily budgets enforced in the model boundary | S6 |
+| Runaway cost | Enforced in the model boundary before each call: model calls and USD per run (the stricter of the bound and current versions) and USD per UTC day. Retries are bounded (3 attempts). A response without usage stops the run, because its cost cannot be bounded | S6 |
+| A replay mistaken for live evidence, or a live call made during replay | The transport must match the run's provenance. Replay serves recordings only, and a missing recording fails the run. The replay guard refuses to start while credentials are configured (environment variables, or `ant` profile credentials stored on disk, counted but never read) and blocks the network | S6 |
+| A model or prompt change slipping into a running run | Model settings come from the run's bound version. A different current version stops the run | S6 |
 | Supply-chain compromise | Hash-locked dependencies, 14-day cooldown, SHA-pinned actions, digest-pinned images, pip-audit, CodeQL, zizmor, actionlint | S0 |
 
 ## Audit integrity: trust boundary and recovery
