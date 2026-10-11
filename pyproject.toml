@@ -46,6 +46,8 @@ exclude-newer = "2026-09-26T00:00:00Z"
 [tool.ruff]
 line-length = 100
 target-version = "py314"
+# Unmodified upstream copies, checked by hash (third_party/vendor-token-broker/MANIFEST.json).
+extend-exclude = ["third_party"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]

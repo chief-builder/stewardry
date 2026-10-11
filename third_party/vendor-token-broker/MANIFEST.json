@@ -1,0 +1,12 @@
+{
+  "repository": "chief-builder/vendor-token-broker",
+  "commit": "20d1426622a0c05478c4331b82ad8952411f9a4a",
+  "license": "MIT",
+  "purpose": "Unmodified copies used by Stewardry's offline contract tests (ADR 0010 error catalog, Atlassian tool-snapshot drift). Not imported at runtime.",
+  "files": {
+    "LICENSE": "ed6514e3efc51169e73574d83bdf9a7fd072d63520d7d956886354ef7254f11b",
+    "src/mcp_gateway/server.py": "6d14c63f7499f33e28363cffefbb51d3f3114df67a1d9cbf2ff0c3774e082812",
+    "src/mcp_gateway/upstreams.json": "2e960f635ff9863c5588e98c339cabe8b110836b9d9f61b1feb5578b132cc789",
+    "src/mcp_gateway/snapshots/atlassian.json": "7023fef1665ea111650173ead189f66570cb78eafcf0d21ac015bcfe5a3dce00"
+  }
+}
