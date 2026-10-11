@@ -106,3 +106,7 @@ jobs:
         run: make pinned-links
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Vendored upstream files match their pinned commit (GitHub API)
+        run: make vendored
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

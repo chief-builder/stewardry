@@ -5,7 +5,7 @@
 UV ?= uv
 RUN = $(UV) run --frozen
 
-.PHONY: help install lint format typecheck test docs secrets workflows actionlint check build test-live-model pinned-links audit lock
+.PHONY: help install lint format typecheck test docs secrets workflows actionlint check build test-live-model pinned-links vendored audit lock
 
 help:  ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/'
@@ -53,6 +53,9 @@ test-live-model: install  ## Live-model smoke test: one real, tiny API call (nee
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py
+
+vendored:  ## Check vendored upstream files against their pinned commit (needs network)
+	python3 tools/check_vendored.py
 
 audit: install  ## pip-audit over the locked dependencies (needs network)
 	$(UV) export --frozen --format requirements-txt --no-emit-project --output-file .audit-requirements.txt
