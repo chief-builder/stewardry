@@ -16,7 +16,8 @@ deterministic subset `make check` runs.
 
 Usage:
   python -m tools.run_evals --mode live --suite full      (make eval-live)
-  python -m tools.run_evals --mode replay --suite full --recordings replay/baseline-<date>
+  python -m tools.run_evals --mode replay --suite full --recordings replay/full-<date> \
+      --grades evals/grades/full-<date>.yaml
 """
 
 import argparse
@@ -42,6 +43,7 @@ from stewardry.platform.db.engine import make_engine
 from stewardry.platform.db.schema import (
     agent_policy_versions,
     audit_events,
+    evidence_conflicts,
     evidence_snapshots,
     question_drafts,
     runs,
@@ -210,6 +212,11 @@ def observe(world: Engine, tasks_by_qn: dict[str, str], cases: list[Case]) -> Ob
             records.append(
                 RunRecord(by_task[run.task_id], run.run_id, run.status, tuple(violations), blocked)
             )
+        conflicted = frozenset(
+            f"{getattr(catalog.by_page(page), 'policy_id', page)}#{ref}"
+            for row in conn.execute(select(evidence_conflicts))
+            for page, ref in json.loads(row.passages_json)
+        )
         for u in conn.execute(select(usage_records)):
             calls.append(
                 ModelCall(u.estimated_cost_micro_usd, u.latency_ms, u.input_tokens, u.output_tokens)
@@ -225,7 +232,7 @@ def observe(world: Engine, tasks_by_qn: dict[str, str], cases: list[Case]) -> Ob
             for n, text in enumerate(case.hidden, start=1):
                 found = any(text[:60] in e for e in excerpts)
                 hidden_found[f"{case.questionnaire_id}#H{n}"] = found
-    return Observations(outcomes, records, calls, hidden_found, leaks)
+    return Observations(outcomes, records, calls, hidden_found, leaks, conflicted)
 
 
 def versions(world: Engine, dataset: dict[str, Any]) -> Versions:
@@ -270,7 +277,12 @@ def _transport(mode: str, recordings: Path) -> Iterator[Transport]:
 
 
 def run_suite(
-    mode: str, suite: str, recordings: Path, workdir: Path, now: dt.datetime | None = None
+    mode: str,
+    suite: str,
+    recordings: Path,
+    workdir: Path,
+    now: dt.datetime | None = None,
+    grades: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Draft every case of the suite and return the report."""
     dataset = load_dataset(DATASET)
@@ -304,7 +316,13 @@ def run_suite(
         observed = observe(world, tasks_by_qn, cases)
         stamp = (now or dt.datetime.now(dt.UTC)).strftime("%Y-%m-%dT%H:%M:%SZ")
         return build_report(
-            dataset, observed, versions(world, dataset), provenance, stamp, scope=scope
+            dataset,
+            observed,
+            versions(world, dataset),
+            provenance,
+            stamp,
+            scope=scope,
+            grades=grades,
         )
     finally:
         world.dispose()
@@ -324,23 +342,29 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--suite", choices=("full", "smoke"), default="full")
     parser.add_argument("--recordings", type=Path)
     parser.add_argument("--out", type=Path, default=ROOT / "evals" / "reports")
+    parser.add_argument("--grades", type=Path, help="author grades to merge (grades/*.yaml)")
     args = parser.parse_args(argv)
     today = dt.datetime.now(dt.UTC).date().isoformat()
     if args.mode == "live" and os.environ.get("STEWARDRY_LIVE_MODEL") != "1":
         print("live mode costs money: set STEWARDRY_LIVE_MODEL=1 (make eval-live)", file=sys.stderr)
         return 2
     recordings = args.recordings or ROOT / "replay" / f"{args.suite}-{today}"
+    grades = None
+    if args.grades is not None:
+        grades = yaml.safe_load(args.grades.read_text(encoding="utf-8"))["grades"]
     with tempfile.TemporaryDirectory() as tmp:
-        report = run_suite(args.mode, args.suite, recordings, Path(tmp))
+        report = run_suite(args.mode, args.suite, recordings, Path(tmp), grades=grades)
     name = f"{today}-{args.suite}-{report['provenance']}"
     for path in write_report(report, args.out, name):
         print(f"wrote {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}")
-    grades = ROOT / "evals" / "grades" / f"{name}.yaml"
-    if args.mode == "live" and not grades.exists():
-        grades.parent.mkdir(parents=True, exist_ok=True)
+    # Grades belong to the recorded answers, so they are named after the recordings
+    # and apply to the live report and to any replay of the same recordings.
+    template_path = ROOT / "evals" / "grades" / f"{recordings.name}.yaml"
+    if args.mode != "scripted" and args.grades is None and not template_path.exists():
+        template_path.parent.mkdir(parents=True, exist_ok=True)
         template = grading_template(report, load_dataset(DATASET))
-        grades.write_text(yaml.safe_dump(template, sort_keys=False), encoding="utf-8")
-        print(f"wrote {grades.relative_to(ROOT)} (fill in to grade correctness)")
+        template_path.write_text(yaml.safe_dump(template, sort_keys=False), encoding="utf-8")
+        print(f"wrote {template_path.relative_to(ROOT)} (fill in, then rerun with --grades)")
     print(f"recordings: {recordings}")
     return 0
 

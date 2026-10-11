@@ -194,6 +194,9 @@ def test_grading_template_lists_drafted_golden_and_adversarial_items() -> None:
     assert "QN-A#Q01" in entries and "QN-A#Q23" in entries and "QN-A#Q21" not in entries
     assert entries["QN-A#Q01"]["grade"] is None
     assert entries["QN-A#Q01"]["expected_citations"] == ["SEC-01#1.1"]
+    assert entries["QN-A#Q01"]["draft_answer"] == "We do."
+    assert entries["QN-A#Q01"]["cited"] == ["SEC-01#1.1"]
+    assert entries["QN-A#Q01"]["status"] == "ready_for_review"
 
 
 def test_markdown_shows_versions_runs_and_caveats() -> None:
@@ -208,3 +211,10 @@ def test_markdown_shows_versions_runs_and_caveats() -> None:
         "Zero-tolerance counts (all runs",
     ):
         assert expected in text
+
+
+def test_ready_answers_citing_a_known_conflict_are_zero_tolerance() -> None:
+    conflicted = frozenset({"SEC-01#1.3", "SEC-02#9.9"})
+    zero = report(observed=observations(conflicted=conflicted))["zero_tolerance"]
+    assert zero["ready_answers_citing_known_conflicts"] == 1  # QN-A#Q03 cites SEC-01#1.3
+    assert report()["zero_tolerance"]["ready_answers_citing_known_conflicts"] == 0

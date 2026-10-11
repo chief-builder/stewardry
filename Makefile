@@ -60,8 +60,8 @@ record-drafting: install  ## Record the drafting smoke scenario against the live
 eval-live: install  ## Live-model baseline on all three questionnaires (records it; costs money)
 	STEWARDRY_LIVE_MODEL=1 $(RUN) python -m tools.run_evals --mode live --suite full
 
-eval-replay: install  ## Replay a recorded baseline offline: make eval-replay RECORDINGS=replay/full-<date>
-	$(RUN) python -m tools.run_evals --mode replay --suite full --recordings $(RECORDINGS)
+eval-replay: install  ## Replay a baseline offline: make eval-replay RECORDINGS=replay/full-<date> [GRADES=...]
+	$(RUN) python -m tools.run_evals --mode replay --suite full --recordings $(RECORDINGS) $(if $(GRADES),--grades $(GRADES))
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py
