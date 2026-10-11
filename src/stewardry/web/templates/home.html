@@ -26,7 +26,7 @@
   <table>
     <tr><th>Request</th><th>Customer</th><th>Jira</th><th>Status</th></tr>
     {% for task in my_tasks %}
-    <tr><td>{{ task.task_id[:8] }}</td><td>{{ task.customer_id }}</td>
+    <tr><td><a href="/tasks/{{ task.task_id }}">{{ task.task_id[:8] }}</a></td><td>{{ task.customer_id }}</td>
         <td>{{ task.jira_issue_key or "" }}</td><td>{{ task.status }}</td></tr>
     {% endfor %}
   </table>
@@ -35,6 +35,13 @@
 
 {% if "grc" in roles %}
 <section>
+  <h2>Drafts in shadow review</h2>
+  {% if in_review %}
+  <ul>{% for task in in_review %}
+    <li><a href="/review/{{ task.task_id }}">{{ task.task_id[:8] }}</a> · {{ task.customer_id }} · {{ task.jira_issue_key or "" }}</li>
+  {% endfor %}</ul>
+  {% else %}<p>Nothing is in review.</p>{% endif %}
+
   <h2>Waiting for drafting authorization</h2>
   {% if reviewable %}
   <table>
@@ -66,5 +73,9 @@
   </table>
   {% endif %}
 </section>
+{% endif %}
+
+{% if show_registry %}
+<p><a href="/registry">Agent registry</a></p>
 {% endif %}
 {% endblock %}

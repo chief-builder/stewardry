@@ -1,9 +1,10 @@
-"""The Stewardry web app (ADR 0005): sign-in, sessions, and the first task pages.
+"""The Stewardry web app (ADR 0005): sign-in, sessions, and role-restricted pages.
 
 Every action uses the signed-in session's hub subject. Form fields never name
 a user. Authorization decisions stay in the platform services (`grants`,
 `access`), which re-read roles and customer assignments from the database on
-every request; the session's copy is only for display.
+every request; the session's copy is only for display. What each role sees is
+built by the view models in `views.py`. Refused page views are audited.
 """
 
 import datetime as dt
@@ -13,18 +14,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, Form, Request
+from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import Engine, select
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+from stewardry.engagements.questionnaire import review
+from stewardry.engagements.questionnaire.ingest import IngestRefused, ingest_questionnaire
+from stewardry.engagements.questionnaire.parse import MAX_BYTES
 from stewardry.platform import access, grants
+from stewardry.platform.artifacts import ArtifactStore
 from stewardry.platform.audit import AuditEvent, AuditLog, record_now
 from stewardry.platform.credentials import CredentialStore, GatewayCredential
 from stewardry.platform.db.schema import task_grants, tasks, utcnow
 from stewardry.platform.roles import active_roles
+from stewardry.web import views
 from stewardry.web.hub import HubClient, HubError, HubRejected, HubUnavailable
 from stewardry.web.sessions import Session, SessionStore
 from stewardry.web.settings import WebSettings
@@ -63,6 +69,7 @@ class Services:
     log: AuditLog
     sessions: SessionStore
     credentials: CredentialStore
+    artifacts: ArtifactStore
 
 
 class Problem(Exception):
@@ -186,7 +193,9 @@ def create_app(services: Services) -> FastAPI:
             roles = active_roles(conn, session.sub)
             reviewable: list[Any] = []
             my_grants: list[Any] = []
+            in_review: list[Any] = []
             if "grc" in roles:
+                in_review = views.reviewable_tasks(conn, session.sub, customers)
                 reviewable = list(
                     conn.execute(
                         select(tasks)
@@ -217,6 +226,8 @@ def create_app(services: Services) -> FastAPI:
             my_tasks=mine,
             reviewable=reviewable,
             my_grants=my_grants,
+            in_review=in_review,
+            show_registry=bool(roles & views.REGISTRY_ROLES),
             submission_key=uuid.uuid4().hex,
         )
 
@@ -347,5 +358,128 @@ def create_app(services: Services) -> FastAPI:
         except grants.TaskError as exc:
             raise Problem(403, f"Revocation refused: {exc}.") from exc
         return RedirectResponse("/", status_code=303)
+
+    # ------------------------------------------------------ role views
+
+    def refuse_view(session: Session, view: str, reason: str, task_id: str | None = None) -> None:
+        record_now(
+            services.engine,
+            services.log,
+            AuditEvent(
+                "view.denied",
+                "denied",
+                actor_sub=session.sub,
+                task_id=task_id,
+                details={"view": view, "reason": reason},
+            ),
+        )
+
+    def own_task(session: Session, task_id: str, view: str) -> Any:
+        """The task, if the signed-in user requested it. Otherwise 404, audited."""
+        with services.engine.connect() as conn:
+            task = conn.execute(select(tasks).where(tasks.c.task_id == task_id)).first()
+        if task is None or task.requester_sub != session.sub:
+            refuse_view(session, view, "not the requester" if task else "no such task", task_id)
+            raise Problem(404, "No such request.")
+        return task
+
+    @app.get("/tasks/{task_id}", response_class=HTMLResponse)
+    def task_status(
+        request: Request, task_id: str, session: Annotated[Session, Depends(required_session)]
+    ) -> HTMLResponse:
+        task = own_task(session, task_id, "task_status")
+        with services.engine.connect() as conn:
+            view = views.sales_task_view(conn, task)
+        return page(request, "task.html", session=session, task=view)
+
+    @app.post("/tasks/{task_id}/questionnaire")
+    def upload(
+        task_id: str, session: SessionDep, file: Annotated[UploadFile, File()]
+    ) -> RedirectResponse:
+        own_task(session, task_id, "upload")
+        data = file.file.read(MAX_BYTES + 1)
+        try:
+            ingest_questionnaire(
+                services.engine,
+                services.log,
+                services.artifacts,
+                session.sub,
+                task_id,
+                file.filename or "questionnaire",
+                data,
+            )
+        except IngestRefused as exc:
+            raise Problem(400, f"Upload refused: {exc}") from exc
+        return RedirectResponse(f"/tasks/{task_id}", status_code=303)
+
+    def reviewable_task(session: Session, task_id: str) -> Any:
+        with services.engine.connect() as conn:
+            task = conn.execute(select(tasks).where(tasks.c.task_id == task_id)).first()
+            problem = review.review_problem(conn, session.sub, task)
+        if problem is not None:
+            refuse_view(session, "review", problem, task_id)
+            raise Problem(403, "You cannot review this request.")
+        return task
+
+    @app.get("/review/{task_id}", response_class=HTMLResponse)
+    def review_page(
+        request: Request, task_id: str, session: Annotated[Session, Depends(required_session)]
+    ) -> HTMLResponse:
+        task = reviewable_task(session, task_id)
+        with services.engine.connect() as conn:
+            view = views.review_view(conn, session.sub, task)
+        record_now(
+            services.engine,
+            services.log,
+            AuditEvent(
+                "view.review",
+                "succeeded",
+                actor_sub=session.sub,
+                reviewer_sub=session.sub,
+                task_id=task_id,
+                customer_id=task.customer_id,
+            ),
+        )
+        return page(
+            request, "review.html", session=session, review=view, verdict_key=uuid.uuid4().hex
+        )
+
+    @app.post("/review/{task_id}/{question_id}/verdict")
+    def verdict(
+        task_id: str,
+        question_id: str,
+        session: SessionDep,
+        verdict: Annotated[str, Form()],
+        idempotency_key: Annotated[str, Form()],
+        edited_answer: Annotated[str, Form()] = "",
+        reason: Annotated[str, Form()] = "",
+    ) -> RedirectResponse:
+        try:
+            review.record_shadow_verdict(
+                services.engine,
+                services.log,
+                session.sub,
+                task_id,
+                question_id,
+                verdict,
+                idempotency_key,
+                edited_answer,
+                reason,
+            )
+        except review.ReviewRefused as exc:
+            raise Problem(403, f"Verdict refused: {exc}.") from exc
+        return RedirectResponse(f"/review/{task_id}#{question_id}", status_code=303)
+
+    @app.get("/registry", response_class=HTMLResponse)
+    def registry_page(
+        request: Request, session: Annotated[Session, Depends(required_session)]
+    ) -> HTMLResponse:
+        with services.engine.connect() as conn:
+            roles = active_roles(conn, session.sub)
+            if not roles & views.REGISTRY_ROLES:
+                refuse_view(session, "registry", "no platform, owner, or auditor role")
+                raise Problem(403, "You cannot view the agent registry.")
+            rows = views.registry_view(conn)
+        return page(request, "registry.html", session=session, agents=rows)
 
     return app

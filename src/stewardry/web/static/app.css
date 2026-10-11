@@ -14,3 +14,8 @@ th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line
 form.inline, td form { display: inline; }
 label { margin-right: 12px; }
 button, .button { background: var(--accent); color: var(--bg); border: 0; padding: 6px 12px; border-radius: 4px; text-decoration: none; cursor: pointer; }
+.notice { border-left: 3px solid var(--accent); padding-left: 12px; }
+.item { border-top: 1px solid var(--line); padding-top: 8px; }
+.finding { color: #b3261e; }
+blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid var(--line); }
+textarea { width: 100%; }
