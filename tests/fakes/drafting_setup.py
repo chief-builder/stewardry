@@ -60,7 +60,15 @@ class Setup:
         return self.executor.start_run(self.task_id, "drafting", provenance)
 
 
-def make_setup(world: Engine, log: AuditLog, tmp_path: Path, filename: str, data: bytes) -> Setup:
+def make_setup(
+    world: Engine,
+    log: AuditLog,
+    tmp_path: Path,
+    filename: str,
+    data: bytes,
+    customer: str = LARKSPUR,
+    submission_key: str = "req-1",
+) -> Setup:
     credentials = CredentialStore()
     later = dt.datetime.now(dt.UTC) + dt.timedelta(hours=1)
     credentials.put("s-bob", BOB, GatewayCredential(TOKEN, later))
@@ -77,7 +85,7 @@ def make_setup(world: Engine, log: AuditLog, tmp_path: Path, filename: str, data
         adapter.tool_specs(catalogs),
         catalogs,
     )
-    task_id = submit_task(world, log, ALICE, AGENT, LARKSPUR, "req-1", "SQR-1")
+    task_id = submit_task(world, log, ALICE, AGENT, customer, submission_key, "SQR-1")
     ingest_questionnaire(
         world, log, ArtifactStore(tmp_path / "artifacts"), ALICE, task_id, filename, data
     )
