@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S9 (questionnaire ingest and screening), 2026-10-11. Each milestone
+Status: updated for Milestone 1, step S10 (evidence snapshots and strength rubric), 2026-10-11. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -65,6 +65,9 @@ flowchart LR
 | Drift between Stewardry and the pinned broker | Unmodified vendored copies of the gateway source, the tool snapshot, and the allow-list are hash-checked offline and against the pinned commit in CI. Contract tests compare the error catalog and every sent argument with them | S7 |
 | Credential leakage into logs, prompts, audit, or artifacts | One shared list of secret patterns: the repo scan (S0), redaction of audit events and `stewardry` log records (S2), plus no-token tests | S0, S2, S6, S14b |
 | Local data exposure or accidental commit | Data directory outside any git work tree; directory 0700, and database and artifact files 0600 | S1 |
+| Stale, superseded, conflicting, or changed evidence supporting an approved answer | Each page read is snapshotted with a SHA-256 of the body, the policy metadata, and numbered passages. A changed hash or changed metadata invalidates earlier snapshots (audited). Superseded or overdue policies, ineligible or invalidated snapshots, missing passages, and recorded conflicts all give insufficient/conflicting/stale support, which cannot be approved. The rules can only lower the drafting stage's claimed strength. `revalidate` is provided now; calling it before an approved file is returned lands with export | S10, Milestone 3 |
+| Incomplete pages or unresolved macros used as evidence | Only a plain page layout is accepted; a missing body, any other element (Confluence `ac:` macros, macro wrappers, scripts), missing metadata, or no numbered passages make the snapshot ineligible | S10 |
+| Evidence one user read reaching another user or customer | Snapshots are keyed by run, acting user, task, customer, page, and version, all from the run's protected context, and every lookup filters on all of them. Tested with forged run contexts | S10 |
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
 | Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |
 | Audit tampering | Append-only triggers, an insert trigger that only accepts the next link, a hash chain, and anchors. `stewardry audit verify` detects edits, deletions, reordering, and insertions; truncation and full rewrites are detected only against an anchor | S2 |

@@ -52,6 +52,10 @@ Milestone 1 is in progress. Done so far:
   parsed into questions with stable cell locations; anything else is
   rejected with a reason. Hidden content, comments, tracked changes, and
   instruction-like text are recorded as screening findings for reviewers.
+- **S10:** evidence snapshots. Each policy page read is recorded per run and
+  user with its version, content hash, metadata, and numbered passages. A
+  hash change invalidates earlier evidence, and the strength rubric labels
+  stale, superseded, conflicting, and ineligible evidence as not approvable.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
