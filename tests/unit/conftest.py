@@ -69,8 +69,7 @@ def log() -> AuditLog:
     return AuditLog(Redactor())
 
 
-@pytest.fixture
-def world(engine: Engine, log: AuditLog) -> Iterator[Engine]:
+def populate(engine: Engine, log: AuditLog) -> None:
     """People applied by bootstrap; the questionnaire agent registered and in build."""
     apply_access_mapping(
         engine, log, PLATFORM, AccessMapping.model_validate(mapping_data()), bootstrap=True
@@ -83,4 +82,9 @@ def world(engine: Engine, log: AuditLog) -> Iterator[Engine]:
         load_baseline(ROOT / "policies" / "platform-baseline.yaml"),
     )
     registry.transition_status(engine, log, OWNER, AGENT, "build", "docs/brief.md")
+
+
+@pytest.fixture
+def world(engine: Engine, log: AuditLog) -> Iterator[Engine]:
+    populate(engine, log)
     yield engine

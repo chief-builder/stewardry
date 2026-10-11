@@ -314,6 +314,17 @@ class EvidenceCache:
             ).first()
         return _from_row(row) if row is not None else None
 
+    def latest(self, page_id: str) -> EvidenceSnapshot | None:
+        """This run's newest valid snapshot of a page, whatever its version."""
+        c = evidence_snapshots.c
+        with self.engine.connect() as conn:
+            row = conn.execute(
+                select(evidence_snapshots)
+                .where(self._scope(), c.page_id == page_id, c.invalidated_at.is_(None))
+                .order_by(c.created_at.desc())
+            ).first()
+        return _from_row(row) if row is not None else None
+
     def get(self, snapshot_id: str) -> EvidenceSnapshot | None:
         with self.engine.connect() as conn:
             row = conn.execute(
