@@ -5,8 +5,9 @@
 # user one.
 #
 # `sub` is the hub subject. alice and bob use the fixed IDs from the broker's
-# test realm. The other subjects are placeholders until `stewardry hub
-# bootstrap` (Milestone 1, step S14) creates those users and reports theirs.
+# test realm. The others are placeholders: `stewardry hub bootstrap` creates
+# those users and writes deploy/hub/proposed-access-mapping.yaml with their
+# real subjects (the fixed IDs in deploy/hub/stewardry-realm-additions.json).
 # Hub group claims are never used for authority; only this file is.
 schema_version: 1
 customers:

@@ -73,6 +73,11 @@ Milestone 1 is in progress. Done so far:
   (2026-10-11) found a conflict-handling gap, which is now fixed and checked
   by replaying its recordings. It is not graded yet and is not an accepted
   baseline.
+- **S14:** `stewardry hub bootstrap` adds Stewardry's client and the legal,
+  platform, auditor, owner, and sme personas to the hub realm. It only adds,
+  never edits, and writes a proposed access mapping. `make test-stack` checks
+  it against a throwaway Keycloak from the broker's pinned image (needs
+  Docker).
 
 There are no approvals and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
@@ -104,6 +109,28 @@ The data directory defaults to `~/.local/share/stewardry`; set
 `STEWARDRY_DATA_DIR` to choose another. It must be outside any git work
 tree, and it is created owner-only.
 
+## Adding Stewardry to the hub
+
+`stewardry hub bootstrap` adds the `stewardry` client and the persona users
+to the local hub realm (ADR 0008). Run it only against the local stack, and
+for the real dev stack only after [setup verification](docs/setup-verification.md).
+It needs these in your shell; their values are never printed:
+
+| Variable | Meaning |
+|---|---|
+| `STEWARDRY_HUB_ISSUER` | The local hub realm, for example `http://localhost:8180/realms/mcp` |
+| `KEYCLOAK_ADMIN_USER`, `KEYCLOAK_ADMIN_PASSWORD` | The hub's admin credential |
+
+```bash
+uv run stewardry hub bootstrap
+```
+
+It only adds, never edits, and running it again changes nothing. Generated
+passwords and the client secret go to `deploy/hub/.secrets.env` (git-ignored,
+0600); only the entry names are printed. It also writes
+`deploy/hub/proposed-access-mapping.yaml` with the real subjects. Review that
+file, then apply it with `stewardry roles apply`.
+
 ## Running the web app
 
 The web app signs people in through the existing identity hub (see
@@ -113,7 +140,7 @@ Never commit them:
 | Variable | Meaning |
 |---|---|
 | `STEWARDRY_HUB_ISSUER` | The hub realm, for example `http://localhost:8180/realms/mcp` |
-| `STEWARDRY_HUB_CLIENT_SECRET` | The `stewardry` client's secret (created by the S14 hub bootstrap) |
+| `STEWARDRY_HUB_CLIENT_SECRET` | The `stewardry` client's secret, from `deploy/hub/.secrets.env` |
 | `STEWARDRY_HUB_CLIENT_ID` | Optional; default `stewardry` |
 | `STEWARDRY_PUBLIC_URL` | Optional; default `http://localhost:8700` |
 

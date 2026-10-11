@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S13 (baseline evals), 2026-10-11. Each milestone
+Status: updated for Milestone 1, step S14 (hub bootstrap), 2026-10-11. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -77,6 +77,8 @@ flowchart LR
 | A confidential passage shown to a reviewer who could not read it | Passage text from a confidential policy is shown only to the reviewer whose own access read it; other reviewers see the citation without the text. This is Stewardry's rule. Per-page Confluence permissions for other viewers are not rechecked when the page is viewed (S15 verifies vendor-side denials) | S12, S15 |
 | A shadow verdict taken as approval | Verdicts (agree, edit, reject) are stored for comparison only. They change no draft and release nothing, and the page says so. A repeated form submission is a no-op | S12 |
 | A known policy conflict missed in another task | Conflicts are recorded per policy passage (`evidence_conflicts`) and apply to every task. Any answer citing a conflicting passage needs an expert. The shared note names only policy IDs and passages, never model or customer text. A document can therefore make other tasks more cautious, but cannot add customer text to them or approve anything. Found by the 2026-10-11 live baseline (evals/reports/README.md) | S13 |
+| Hub bootstrap changing the broker's identity setup, or pointed at the wrong hub | It accepts only a local issuer for realm `mcp`, and the hub's discovery document must name exactly that issuer. It only adds: an existing client or user is never edited (differences are reported). The broker's clients, client scopes, and users are compared before and after, and any change stops it. No `offline_access`, groups, direct grants, or service account. Checked against the broker's pinned Keycloak and realm in the stack tier | S14 |
+| Hub admin credential or generated secrets leaking | The admin credential comes from the environment and is never printed or stored. Generated persona passwords and the client secret go only to the git-ignored `deploy/hub/.secrets.env` (0600); only entry names are printed. The stack test container gets its own random admin password and is removed afterwards | S14 |
 | Overstated or mislabeled eval results | Each report carries exactly one provenance label (the generator refuses others) and the model, prompt, dataset, policy, control, and code versions. Raw and valid completion are separate. Zero-tolerance counts include failed runs. Rates under 20 items are labeled insufficient. Correctness stays "not graded" without author grades. Replay reports spend nothing and show no latency | S13 |
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
 | Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |

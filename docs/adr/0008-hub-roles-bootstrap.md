@@ -71,6 +71,33 @@ stack tests verify this (Milestone 1 step S4b).
 broker repository or any setting the broker or gateway depend on. Authority
 stays in the application, as spec section 3 requires.
 
+## Implementation note (S14, 2026-10-11)
+
+`stewardry hub bootstrap` (`platform/hub_bootstrap.py`) implements this
+decision. The stack tier checked it against a throwaway Keycloak started from
+the broker's pinned image (26.7.4) with the broker's realm file mounted
+read-only (`make test-stack`):
+
+- **Fixed IDs survive partial import.** Keycloak 26.7.4 kept every supplied
+  user ID. Subjects therefore survive a stack recreate. The re-mapping path
+  stays in place, and is tested offline, in case a later version behaves
+  differently.
+- **The client carries its own username mapper.** The broker's realm has no
+  `profile` scope, so ID tokens carried no `preferred_username`, and sign-in
+  to Stewardry failed until this was added. The mapper is defined on the
+  `stewardry` client and adds that claim to its ID tokens only. No realm or
+  broker scope changes.
+- **Gateway tokens work.** A bootstrapped persona signed in to Stewardry
+  through the hub's real login form. The access token Stewardry holds has the
+  gateway audience (`http://localhost:8500/mcp`), `azp` `stewardry`, and no
+  groups.
+- **The broker's configuration is unchanged.** Its clients, client scopes,
+  and `alice` and `bob` are byte-identical before, between, and after two
+  runs, and the second run writes nothing.
+- **Not yet done:** running it against the real dev stack waits for setup
+  verification and the owner's go-ahead. The gateway call itself is checked in
+  S14b.
+
 ## Rejected alternatives
 
 - **Editing or forking the broker's realm file:** the broker repository
