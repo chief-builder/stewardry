@@ -1,6 +1,8 @@
 """Command-line entry point. Commands are added as milestone steps land."""
 
 import argparse
+import json
+import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -246,6 +248,66 @@ def _roles(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+HUB_ADMIN_VARIABLES = ("STEWARDRY_HUB_ISSUER", "KEYCLOAK_ADMIN_USER", "KEYCLOAK_ADMIN_PASSWORD")
+
+
+def _hub_bootstrap(args: argparse.Namespace) -> int:
+    import httpx2
+    import yaml
+
+    from stewardry.platform import hub_bootstrap as hb
+
+    missing = [name for name in HUB_ADMIN_VARIABLES if not os.environ.get(name)]
+    if missing:
+        print("error: set " + ", ".join(missing) + " (values are never printed)", file=sys.stderr)
+        return EXIT_USAGE
+    additions = json.loads(Path(args.additions).read_text(encoding="utf-8"))
+    issuer = os.environ["STEWARDRY_HUB_ISSUER"].rstrip("/")
+    try:
+        base = hb.check_issuer(issuer, additions["realm"])
+        with httpx2.Client(timeout=15) as http:
+            admin = hb.KeycloakAdmin(base, additions["realm"], http)
+            admin.login(
+                issuer, os.environ["KEYCLOAK_ADMIN_USER"], os.environ["KEYCLOAK_ADMIN_PASSWORD"]
+            )
+            result = hb.bootstrap(
+                admin, issuer, additions, Path(args.secrets_file), args.include_sales2
+            )
+    except hb.BootstrapError as exc:
+        print(f"refused: {exc}", file=sys.stderr)
+        return EXIT_PROBLEMS
+    mapping = hb.proposed_mapping(Path(args.example_mapping), result.subjects)
+    Path(args.mapping_out).write_text(yaml.safe_dump(mapping, sort_keys=False), encoding="utf-8")
+    print(f"client stewardry: {result.client}")
+    print(f"users created: {', '.join(result.created_users) or 'none'}")
+    print(f"users already present: {', '.join(result.existing_users) or 'none'}")
+    for username, kept in sorted(result.fixed_ids_kept.items()):
+        if not kept:
+            print(f"warning: {username} did not keep its fixed ID; re-map after a recreate")
+    for line in result.drift:
+        print(f"warning: {line}")
+    if result.entries_written:
+        print(f"wrote {args.secrets_file} (0600), entries: {', '.join(result.entries_written)}")
+    print("broker clients and scopes: unchanged")
+    print(f"proposed access mapping: {args.mapping_out} (review, then `stewardry roles apply`)")
+    return EXIT_OK
+
+
+def _add_hub_commands(commands: Any) -> None:
+    parser = commands.add_parser("hub", help="hub (Keycloak) setup for Stewardry (ADR 0008)")
+    sub = parser.add_subparsers(title="hub commands", required=True, dest="hub_action")
+    boot = sub.add_parser(
+        "bootstrap",
+        help="add the stewardry client and persona users to the local hub realm (idempotent)",
+    )
+    boot.add_argument("--additions", default="deploy/hub/stewardry-realm-additions.json")
+    boot.add_argument("--secrets-file", default="deploy/hub/.secrets.env")
+    boot.add_argument("--example-mapping", default="deploy/access/access-mapping.example.yaml")
+    boot.add_argument("--mapping-out", default="deploy/hub/proposed-access-mapping.yaml")
+    boot.add_argument("--include-sales2", action="store_true", help="also add the sales2 user")
+    boot.set_defaults(handler=_hub_bootstrap)
+
+
 def _add_roles_commands(commands: Any) -> None:
     parser = commands.add_parser("roles", help="users, roles, and customer assignments")
     sub = parser.add_subparsers(title="roles commands", required=True, dest="roles_action")
@@ -338,6 +400,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     _add_registry_commands(commands)
     _add_roles_commands(commands)
+    _add_hub_commands(commands)
     serve = commands.add_parser("serve", help="run the web app (localhost only by default)")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8700)

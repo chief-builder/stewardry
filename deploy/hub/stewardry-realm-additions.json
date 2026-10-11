@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "realm": "mcp",
+  "note": "What `stewardry hub bootstrap` adds to the broker's test realm (ADR 0008). It only adds; it never edits or removes anything the broker's realm defines. No passwords or secrets are stored here: they are generated at bootstrap time into deploy/hub/.secrets.env (git-ignored, 0600). The client carries its own username mapper because the broker's realm has no `profile` scope; it adds `preferred_username` to Stewardry's ID tokens only.",
+  "client": {
+    "clientId": "stewardry",
+    "name": "Stewardry (synthetic exercise)",
+    "protocol": "openid-connect",
+    "publicClient": false,
+    "standardFlowEnabled": true,
+    "directAccessGrantsEnabled": false,
+    "implicitFlowEnabled": false,
+    "serviceAccountsEnabled": false,
+    "frontchannelLogout": false,
+    "redirectUris": [
+      "http://localhost:8700/auth/callback"
+    ],
+    "webOrigins": [],
+    "attributes": {
+      "pkce.code.challenge.method": "S256"
+    },
+    "defaultClientScopes": [
+      "basic"
+    ],
+    "optionalClientScopes": [
+      "mcp-gateway"
+    ],
+    "protocolMappers": [
+      {
+        "name": "stewardry-username",
+        "protocol": "openid-connect",
+        "protocolMapper": "oidc-usermodel-property-mapper",
+        "consentRequired": false,
+        "config": {
+          "user.attribute": "username",
+          "claim.name": "preferred_username",
+          "jsonType.label": "String",
+          "id.token.claim": "true",
+          "access.token.claim": "false",
+          "userinfo.token.claim": "false",
+          "introspection.token.claim": "false"
+        }
+      }
+    ]
+  },
+  "existing_users": [
+    "alice",
+    "bob"
+  ],
+  "users": [
+    {
+      "username": "legal",
+      "id": "1e6a1000-0000-4000-8000-000000000003",
+      "firstName": "Legal",
+      "lastName": "Persona"
+    },
+    {
+      "username": "platform",
+      "id": "91a7f000-0000-4000-8000-000000000004",
+      "firstName": "Platform",
+      "lastName": "Persona"
+    },
+    {
+      "username": "auditor",
+      "id": "a0d17000-0000-4000-8000-000000000005",
+      "firstName": "Auditor",
+      "lastName": "Persona"
+    },
+    {
+      "username": "owner",
+      "id": "0e4e5000-0000-4000-8000-000000000006",
+      "firstName": "Owner",
+      "lastName": "Persona"
+    },
+    {
+      "username": "sme",
+      "id": "5ee00000-0000-4000-8000-000000000007",
+      "firstName": "Expert",
+      "lastName": "Persona"
+    }
+  ],
+  "optional_users": [
+    {
+      "username": "sales2",
+      "id": "5a1e5200-0000-4000-8000-000000000008",
+      "firstName": "Sales",
+      "lastName": "Persona Two"
+    }
+  ]
+}
