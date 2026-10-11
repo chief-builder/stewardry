@@ -60,7 +60,8 @@ def _local_network_only(monkeypatch: pytest.MonkeyPatch) -> None:
     original = socket.getaddrinfo
 
     def local(host: object, *args: object, **kwargs: object) -> object:
-        if str(host) not in LOCAL:
+        name = host.decode() if isinstance(host, bytes) else str(host)
+        if name not in LOCAL:
             raise RuntimeError(f"stack tests may only reach localhost, not {host}")
         return original(host, *args, **kwargs)  # type: ignore[arg-type]
 

@@ -68,7 +68,8 @@ from tests.stack.conftest import (
 pytestmark = pytest.mark.stack
 
 APP = "http://localhost:8700"
-CONSENT_PREFIX = f"{BROKER_URL}/v1/authorize/atlassian?txn="
+# The stand-in registry names the vendor `mockhub-atlassian`; the real stack uses `atlassian`.
+CONSENT_PREFIX = f"{BROKER_URL}/v1/authorize/mockhub-atlassian?txn="
 STAND_IN_CLOUD_ID = "00000000-0000-4000-8000-00000000a71a"  # mock-mcp's fixed site
 USER_INFO = "atlassian_atlassianUserInfo"
 ADDITIONS = json.loads((ROOT / "deploy/hub/stewardry-realm-additions.json").read_text())
@@ -340,7 +341,7 @@ def test_an_outage_is_never_reported_as_consent(
 def test_a_hub_outage_is_never_reported_as_consent(stack: Stack, paused: Any) -> None:
     paused("vtb-keycloak")
     outcome = client().call_tool(stack.credentials["sme"], USER_INFO, {}, interactive=False)
-    assert cls(outcome) in ("unavailable", "config_error"), outcome
+    assert cls(outcome) == "unavailable", outcome
     assert not isinstance(outcome, ConsentRequested)
 
 
@@ -367,7 +368,7 @@ def test_a_pending_revoke_is_not_consent(stack: Stack, paused: Any) -> None:
     paused("vtb-mock-vendor")
     client().raw_call(stack.credentials["sme"], "disconnect_atlassian", {}, interactive=False)
     outcome = client().call_tool(stack.credentials["sme"], USER_INFO, {}, interactive=False)
-    assert cls(outcome) in ("disconnect_pending", "unavailable"), outcome
+    assert cls(outcome) == "disconnect_pending", outcome
     assert not isinstance(outcome, ConsentRequested)
 
 
