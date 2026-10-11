@@ -5,8 +5,9 @@
 - `ReplayTransport` serves only recorded responses. A request it has not seen
   is a hard failure (`ReplayMiss`), never a live call.
 - `replay_guard` makes a process safe for offline replay: it refuses to start
-  while model or service credentials are configured, and blocks outbound
-  network access for as long as it is active.
+  while model or service credentials are configured (environment variables,
+  or `ant` profile credentials stored on disk, counted but never read), and
+  blocks outbound network access for as long as it is active.
 
 A replay shows that the workflow is reproducible. It does not show live
 vendor access or current model quality (spec section 1).
@@ -118,6 +119,22 @@ def configured_credentials() -> list[str]:
     return [name for name in CREDENTIAL_ENV_VARS if os.environ.get(name)]
 
 
+def anthropic_config_dir() -> Path:
+    """Where `ant auth login` stores profiles; the SDK reads the same place."""
+    configured = os.environ.get("ANTHROPIC_CONFIG_DIR")
+    if configured:
+        return Path(configured)
+    if os.name == "nt" and os.environ.get("APPDATA"):  # pragma: no cover - Windows only
+        return Path(os.environ["APPDATA"]) / "Anthropic"
+    return Path.home() / ".config" / "anthropic"
+
+
+def stored_profile_credentials() -> list[Path]:
+    """Stored `ant` profile credential files. Their contents are never read."""
+    credentials = anthropic_config_dir() / "credentials"
+    return sorted(credentials.glob("*.json")) if credentials.is_dir() else []
+
+
 def _blocked(*_: Any, **__: Any) -> Any:
     raise NetworkBlocked("network access is blocked during offline replay")
 
@@ -126,9 +143,18 @@ def _blocked(*_: Any, **__: Any) -> Any:
 def replay_guard() -> Iterator[None]:
     """Refuse if live credentials are configured; block the network while active."""
     present = configured_credentials()
+    stored = stored_profile_credentials()
+    if stored:
+        present.append(
+            f"ant profile credentials in {anthropic_config_dir() / 'credentials'} "
+            f"({len(stored)} file(s))"
+        )
     if present:
         raise ReplayUnsafe(
-            "offline replay refuses to run while credentials are set: " + ", ".join(present)
+            "offline replay refuses to run while credentials are configured: "
+            + ", ".join(present)
+            + ". Unset the variables, and point ANTHROPIC_CONFIG_DIR at an empty "
+            "directory for the replay command."
         )
     targets = [
         (socket.socket, "connect"),

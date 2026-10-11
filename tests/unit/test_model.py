@@ -45,6 +45,7 @@ from stewardry.platform.replay import (
     ReplayStore,
     ReplayTransport,
     ReplayUnsafe,
+    anthropic_config_dir,
     replay_guard,
 )
 from tests.unit.conftest import AGENT, ALICE, BOB, LARKSPUR, PLATFORM, ROOT
@@ -481,6 +482,7 @@ def test_recording_then_offline_replay_reproduces_the_response(
         "STEWARDRY_HUB_CLIENT_SECRET",
     ):
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("ANTHROPIC_CONFIG_DIR", str(tmp_path / "empty-anthropic-config"))
     with replay_guard():
         replay_run = start(world, log, executor, "offline-replay", key="req-2")
         replayed = access(world, log, executor, ReplayTransport(store)).call(replay_run, REQUEST)
@@ -492,8 +494,9 @@ def test_recording_then_offline_replay_reproduces_the_response(
 
 
 def test_replay_guard_refuses_credentials_and_blocks_the_network(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
+    monkeypatch.setenv("ANTHROPIC_CONFIG_DIR", str(tmp_path))
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-" + "ant-" + "y" * 30)
     with pytest.raises(ReplayUnsafe, match="ANTHROPIC_API_KEY") as refused, replay_guard():
         pass
@@ -547,3 +550,38 @@ def test_unexpected_transport_errors_still_fail_the_run_cleanly(
         access(world, log, executor, transport).call(run, REQUEST)
     assert status(world, run) == "failed"
     assert model_events(world)[0][1]["error"] == "KeyError"
+
+
+def test_replay_guard_refuses_stored_ant_profiles_without_reading_them(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    for name in (
+        "ANTHROPIC_API_KEY",
+        "ANTHROPIC_AUTH_TOKEN",
+        "ANTHROPIC_PROFILE",
+        "STEWARDRY_HUB_CLIENT_SECRET",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    config = tmp_path / "anthropic"
+    (config / "credentials").mkdir(parents=True)
+    secret = "oauth-access-token-value-123"
+    (config / "credentials" / "default.json").write_text(json.dumps({"access_token": secret}))
+    (config / "credentials" / "notes.txt").write_text("not a credential file")
+    monkeypatch.setenv("ANTHROPIC_CONFIG_DIR", str(config))
+    with (
+        pytest.raises(ReplayUnsafe, match=r"ant profile credentials .* \(1 file\(s\)\)") as refused,
+        replay_guard(),
+    ):
+        pass
+    assert secret not in str(refused.value)
+    assert "ANTHROPIC_CONFIG_DIR at an empty directory" in str(refused.value)
+
+    monkeypatch.setenv("ANTHROPIC_CONFIG_DIR", str(tmp_path / "empty"))
+    with replay_guard():  # an empty config directory: replay may start
+        pass
+
+
+def test_default_config_dir_is_under_home(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.delenv("ANTHROPIC_CONFIG_DIR", raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    assert anthropic_config_dir() == tmp_path / ".config" / "anthropic"
