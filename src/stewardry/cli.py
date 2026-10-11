@@ -267,7 +267,9 @@ def _hub_bootstrap(args: argparse.Namespace) -> int:
         base = hb.check_issuer(issuer, additions["realm"])
         with httpx2.Client(timeout=15) as http:
             admin = hb.KeycloakAdmin(base, additions["realm"], http)
-            admin.login(os.environ["KEYCLOAK_ADMIN_USER"], os.environ["KEYCLOAK_ADMIN_PASSWORD"])
+            admin.login(
+                issuer, os.environ["KEYCLOAK_ADMIN_USER"], os.environ["KEYCLOAK_ADMIN_PASSWORD"]
+            )
             result = hb.bootstrap(
                 admin, issuer, additions, Path(args.secrets_file), args.include_sales2
             )

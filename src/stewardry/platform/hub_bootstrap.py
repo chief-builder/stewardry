@@ -117,7 +117,11 @@ class KeycloakAdmin:
             raise BootstrapError(f"{what} failed (HTTP {response.status_code})")
         return response
 
-    def login(self, username: str, password: str) -> None:
+    def login(self, issuer: str, username: str, password: str) -> None:
+        """Sign in to the admin API, but only after the hub has shown it is the
+        expected issuer, so the admin credential never goes anywhere else."""
+        if self.discovery_issuer().rstrip("/") != issuer.rstrip("/"):
+            raise BootstrapError("the hub's discovery document names a different issuer; stopped")
         response = self.http.post(
             f"{self.base}/realms/master/protocol/openid-connect/token",
             data={

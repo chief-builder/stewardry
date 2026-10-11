@@ -39,7 +39,7 @@ APP = "http://localhost:8700"
 
 def admin_session(hub: Hub, http: httpx2.Client) -> hb.KeycloakAdmin:
     admin = hb.KeycloakAdmin(hub.base, "mcp", http)
-    admin.login(hub.admin_user, hub.admin_password)
+    admin.login(hub.issuer, hub.admin_user, hub.admin_password)
     return admin
 
 

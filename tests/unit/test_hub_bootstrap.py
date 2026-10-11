@@ -27,7 +27,7 @@ PERSONAS = ["legal", "platform", "auditor", "owner", "sme"]
 def run(fake: FakeKeycloak, secrets_file: Path, **kwargs: Any) -> hb.BootstrapResult:
     with httpx2.Client(transport=fake.transport()) as http:
         admin = hb.KeycloakAdmin(BASE, "mcp", http)
-        admin.login(ADMIN_USER, ADMIN_PASSWORD)
+        admin.login(ISSUER, ADMIN_USER, ADMIN_PASSWORD)
         return hb.bootstrap(admin, ISSUER, ADDITIONS, secrets_file, **kwargs)
 
 
@@ -145,10 +145,11 @@ def test_only_a_local_hub_realm_is_accepted(issuer: str) -> None:
         hb.check_issuer(issuer, "mcp")
 
 
-def test_a_hub_naming_another_issuer_is_refused_before_any_write(tmp_path: Path) -> None:
+def test_a_hub_naming_another_issuer_never_gets_the_admin_credential(tmp_path: Path) -> None:
     fake = FakeKeycloak(issuer="http://localhost:9999/realms/mcp")
     with pytest.raises(hb.BootstrapError, match="different issuer"):
         run(fake, tmp_path / ".secrets.env")
+    assert ("POST", "/realms/master/protocol/openid-connect/token") not in fake.requests
     assert fake.writes() == []
     assert not (tmp_path / ".secrets.env").exists()
 
@@ -169,7 +170,7 @@ def test_a_wrong_admin_credential_fails_cleanly() -> None:
     with httpx2.Client(transport=FakeKeycloak().transport()) as http:
         admin = hb.KeycloakAdmin(BASE, "mcp", http)
         with pytest.raises(hb.BootstrapError, match="admin sign-in failed"):
-            admin.login(ADMIN_USER, "wrong")
+            admin.login(ISSUER, ADMIN_USER, "wrong")
 
 
 # ------------------------------------------------------------------ CLI
