@@ -55,6 +55,18 @@ an earlier version.
 Python 3.15.0 was released on 2026-10-09. It is rejected for now because it is
 one day old and the broker targets 3.14.
 
+## Amendment (S4b, 2026-10-10): OIDC and HTTP libraries
+
+- **joserfc instead of Authlib.** Authlib's documentation says its
+  `authlib.jose` module is deprecated in favor of joserfc and slated for
+  removal in Authlib 1.8, the version the cooldown would pick. Stewardry
+  verifies ID tokens with joserfc 1.7.5, from the same author. It runs the
+  OIDC authorization-code flow with PKCE, discovery, and refresh in a short
+  module of its own (`web/hub.py`), so Authlib is not a dependency.
+- **httpx2 instead of httpx.** The Anthropic SDK 1.x requires `httpx2`, and
+  Starlette's test client now prefers it. Using `httpx2` (2.13.1, from the
+  pydantic organization) everywhere keeps one HTTP stack.
+
 ## Rejected alternatives
 
 - **TypeScript or Node:** it would add a second language next to the
