@@ -390,6 +390,45 @@ screening_findings = Table(
 )
 Index("ix_screening_findings_task_id", screening_findings.c.task_id)
 
+# What one acting user read from one policy page in one run (S10). The
+# content hash is the authoritative change detector; the page version is
+# nullable until gap G7 is verified. Passages may hold confidential policy
+# text, so only reviewer views may show them.
+evidence_snapshots = Table(
+    "evidence_snapshots",
+    metadata,
+    Column("snapshot_id", String(32), primary_key=True),
+    Column("run_id", ForeignKey("runs.run_id"), nullable=False),
+    Column("acting_sub", ForeignKey("users.sub"), nullable=False),
+    Column("task_id", ForeignKey("tasks.task_id"), nullable=False),
+    Column("customer_id", ForeignKey("customers.customer_id"), nullable=False),
+    Column("page_id", String(64), nullable=False),
+    Column("page_version", Integer),
+    Column("content_sha256", String(64), nullable=False),
+    Column("metadata_json", Text),
+    Column("passages_json", Text, nullable=False),
+    Column("problems_json", Text, nullable=False),
+    Column("eligible", Boolean, nullable=False),
+    Column("created_at", UTCTimestamp, nullable=False),
+    Column("invalidated_at", UTCTimestamp),
+    Column("invalidated_reason", String(255)),
+    CheckConstraint(_sha256("content_sha256"), name="sha256_hex"),
+    CheckConstraint("length(page_id) > 0", name="page_id_not_empty"),
+    CheckConstraint("NOT eligible OR metadata_json IS NOT NULL", name="eligible_has_metadata"),
+    CheckConstraint(
+        "(invalidated_at IS NULL AND invalidated_reason IS NULL) OR "
+        "(invalidated_at IS NOT NULL AND coalesce(length(invalidated_reason), 0) > 0)",
+        name="invalidation_has_reason",
+    ),
+)
+Index(
+    "ix_evidence_snapshots_scope",
+    evidence_snapshots.c.run_id,
+    evidence_snapshots.c.acting_sub,
+    evidence_snapshots.c.task_id,
+    evidence_snapshots.c.page_id,
+)
+
 AUDIT_OUTCOMES = ("succeeded", "denied", "failed")
 GENESIS_HASH = "0" * 64
 
