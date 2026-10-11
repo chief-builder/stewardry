@@ -34,6 +34,7 @@ import yaml
 
 LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1"})
 CLIENT_ENTRY = "STEWARDRY_HUB_CLIENT_SECRET"  # an entry name, not a value
+GATEWAY_CLIENT_ENTRY = "STEWARDRY_GATEWAY_CLIENT_SECRET"  # an entry name, not a value
 # Client settings compared on an existing client (reported if different, never changed).
 CHECKED_CLIENT_FIELDS = (
     "publicClient",
@@ -54,6 +55,8 @@ class BootstrapError(Exception):
 @dataclass
 class BootstrapResult:
     client: str = ""  # "created" | "existed"
+    gateway_scope: str = ""  # with --with-stewardry-gateway: "created" | "existed"
+    gateway_client: str = ""
     created_users: list[str] = field(default_factory=list)
     existing_users: list[str] = field(default_factory=list)
     subjects: dict[str, str] = field(default_factory=dict)  # username -> sub
@@ -162,7 +165,12 @@ class KeycloakAdmin:
         return result
 
     def create_client(self, representation: Mapping[str, Any]) -> None:
-        self._admin("POST", "/clients", "creating the stewardry client", json=representation)
+        name = representation["clientId"]
+        self._admin("POST", "/clients", f"creating the {name} client", json=representation)
+
+    def create_client_scope(self, representation: Mapping[str, Any]) -> None:
+        name = representation["name"]
+        self._admin("POST", "/client-scopes", f"creating the {name} scope", json=representation)
 
     def find_user(self, username: str) -> dict[str, Any] | None:
         users = self._admin(
@@ -185,8 +193,9 @@ class KeycloakAdmin:
 # ----------------------------------------------------------------- bootstrap
 
 
-def _canonical(items: list[dict[str, Any]], skip: str | None = None) -> str:
-    kept = [i for i in items if i.get("clientId") != skip]
+def _canonical(items: list[dict[str, Any]], skip: frozenset[str] = frozenset()) -> str:
+    """Everything except Stewardry's own clients and scopes, canonically."""
+    kept = [i for i in items if i.get("clientId", i.get("name")) not in skip]
     return json.dumps(sorted(kept, key=lambda i: str(i.get("id"))), sort_keys=True)
 
 
@@ -196,16 +205,33 @@ def bootstrap(
     additions: Mapping[str, Any],
     secrets_file: Path,
     include_optional: bool = False,
+    include_gateway: bool = False,
 ) -> BootstrapResult:
+    """`include_gateway` also adds the Stewardry-only gateway's scope and
+    exchange client (stack tier; the Milestone 2 decision gate, S14c)."""
     result = BootstrapResult()
     if admin.discovery_issuer().rstrip("/") != issuer.rstrip("/"):
         raise BootstrapError("the hub's discovery document names a different issuer; stopped")
     client_spec = dict(additions["client"])
     client_id = client_spec["clientId"]
-    before_clients = _canonical(admin.clients(), skip=client_id)
-    before_scopes = _canonical(admin.client_scopes())
+    gateway = additions["stewardry_gateway"]
+    ours = frozenset({client_id, gateway["exchange_client"]["clientId"], gateway["scope"]["name"]})
+    before_clients = _canonical(admin.clients(), skip=ours)
+    before_scopes = _canonical(admin.client_scopes(), skip=ours)
     stored = read_secrets(secrets_file)
     entries = dict(stored)
+
+    if include_gateway:
+        scope = gateway["scope"]
+        if any(s.get("name") == scope["name"] for s in admin.client_scopes()):
+            result.gateway_scope = "existed"
+        else:
+            admin.create_client_scope(scope)
+            result.gateway_scope = "created"
+        client_spec["optionalClientScopes"] = [
+            *client_spec["optionalClientScopes"],
+            scope["name"],
+        ]
 
     existing = next((c for c in admin.clients() if c.get("clientId") == client_id), None)
     if existing is None:
@@ -224,6 +250,17 @@ def bootstrap(
                 f"client {client_id} exists but its secret is not in {secrets_file.name}; "
                 "it was not regenerated"
             )
+
+    if include_gateway:
+        exchange = gateway["exchange_client"]
+        if any(c.get("clientId") == exchange["clientId"] for c in admin.clients()):
+            result.gateway_client = "existed"
+        else:
+            secret = secrets.token_urlsafe(32)
+            admin.create_client(exchange | {"secret": secret})
+            entries[GATEWAY_CLIENT_ENTRY] = secret
+            result.entries_written.append(GATEWAY_CLIENT_ENTRY)
+            result.gateway_client = "created"
 
     for username in additions["existing_users"]:
         user = admin.find_user(username)
@@ -268,8 +305,8 @@ def bootstrap(
     if result.entries_written:
         write_secrets(secrets_file, entries)
 
-    after_clients = _canonical(admin.clients(), skip=client_id)
-    after_scopes = _canonical(admin.client_scopes())
+    after_clients = _canonical(admin.clients(), skip=ours)
+    after_scopes = _canonical(admin.client_scopes(), skip=ours)
     result.broker_config_unchanged = (before_clients, before_scopes) == (
         after_clients,
         after_scopes,

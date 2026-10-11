@@ -271,7 +271,12 @@ def _hub_bootstrap(args: argparse.Namespace) -> int:
                 issuer, os.environ["KEYCLOAK_ADMIN_USER"], os.environ["KEYCLOAK_ADMIN_PASSWORD"]
             )
             result = hb.bootstrap(
-                admin, issuer, additions, Path(args.secrets_file), args.include_sales2
+                admin,
+                issuer,
+                additions,
+                Path(args.secrets_file),
+                args.include_sales2,
+                args.with_stewardry_gateway,
             )
     except hb.BootstrapError as exc:
         print(f"refused: {exc}", file=sys.stderr)
@@ -279,6 +284,8 @@ def _hub_bootstrap(args: argparse.Namespace) -> int:
     mapping = hb.proposed_mapping(Path(args.example_mapping), result.subjects)
     Path(args.mapping_out).write_text(yaml.safe_dump(mapping, sort_keys=False), encoding="utf-8")
     print(f"client stewardry: {result.client}")
+    if result.gateway_client:
+        print(f"stewardry-gateway scope: {result.gateway_scope}, client: {result.gateway_client}")
     print(f"users created: {', '.join(result.created_users) or 'none'}")
     print(f"users already present: {', '.join(result.existing_users) or 'none'}")
     for username, kept in sorted(result.fixed_ids_kept.items()):
@@ -305,6 +312,12 @@ def _add_hub_commands(commands: Any) -> None:
     boot.add_argument("--example-mapping", default="deploy/access/access-mapping.example.yaml")
     boot.add_argument("--mapping-out", default="deploy/hub/proposed-access-mapping.yaml")
     boot.add_argument("--include-sales2", action="store_true", help="also add the sales2 user")
+    boot.add_argument(
+        "--with-stewardry-gateway",
+        action="store_true",
+        help="also add the Stewardry-only gateway's scope and exchange client "
+        "(stack tier only in Milestone 1; ADR 0009 option 2)",
+    )
     boot.set_defaults(handler=_hub_bootstrap)
 
 
