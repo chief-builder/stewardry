@@ -49,7 +49,7 @@ build: install  ## Build the wheel and sdist, then check the wheel installs and 
 	$(UV) run --isolated --no-project --with dist/*.whl stewardry --version
 
 test-live-model: install  ## Live-model smoke test: one real, tiny API call (needs a key; costs money)
-	STEWARDRY_LIVE_MODEL=1 $(RUN) pytest -m live_model --no-cov tests/unit/test_model_live.py
+	STEWARDRY_LIVE_MODEL=1 $(RUN) pytest -m live_model --no-cov -s tests/unit/test_model_live.py
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py
