@@ -15,6 +15,7 @@ from sqlalchemy import (
     Column,
     Dialect,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     MetaData,
@@ -427,6 +428,51 @@ Index(
     evidence_snapshots.c.acting_sub,
     evidence_snapshots.c.task_id,
     evidence_snapshots.c.page_id,
+)
+
+DRAFT_STATUSES = ("ready_for_review", "needs_expert")
+STRENGTH_LABELS = ("direct_current", "partial_ambiguous", "insufficient_conflicting_stale")
+EXPERT_REASONS = ("missing", "stale", "conflict", "ambiguous", "unsupported", "no_answer")
+
+# One drafted outcome per question (S11). The primary key makes drafting
+# idempotent across restarts. Only an answer with citations and direct
+# current support can be ready for review; everything else needs an expert.
+# Shadow status: nothing here is exported or shown to Sales.
+question_drafts = Table(
+    "question_drafts",
+    metadata,
+    Column("task_id", String(32), primary_key=True),
+    Column("question_id", String(32), primary_key=True),
+    Column("run_id", ForeignKey("runs.run_id"), nullable=False),
+    Column("status", String(32), nullable=False),
+    Column("answer", Text),
+    Column("claimed_strength", String(16)),
+    Column("strength", String(32)),
+    Column("expert_reason", String(16)),
+    Column("reasons_json", Text, nullable=False),
+    Column("citations_json", Text, nullable=False),
+    Column("conflict_json", Text),
+    Column("created_at", UTCTimestamp, nullable=False),
+    ForeignKeyConstraint(
+        ["task_id", "question_id"], ["task_questions.task_id", "task_questions.question_id"]
+    ),
+    CheckConstraint(_one_of("status", DRAFT_STATUSES), name="status_known"),
+    CheckConstraint(
+        "strength IS NULL OR " + _one_of("strength", STRENGTH_LABELS), name="strength_known"
+    ),
+    CheckConstraint(
+        "expert_reason IS NULL OR " + _one_of("expert_reason", EXPERT_REASONS),
+        name="expert_reason_known",
+    ),
+    CheckConstraint(
+        "status != 'ready_for_review' OR (coalesce(length(answer), 0) > 0 "
+        "AND strength = 'direct_current' AND citations_json != '[]' "
+        "AND expert_reason IS NULL)",
+        name="review_needs_cited_direct_answer",
+    ),
+    CheckConstraint(
+        "status != 'needs_expert' OR expert_reason IS NOT NULL", name="expert_has_reason"
+    ),
 )
 
 AUDIT_OUTCOMES = ("succeeded", "denied", "failed")
