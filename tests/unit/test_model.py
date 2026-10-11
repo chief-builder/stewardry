@@ -481,7 +481,9 @@ def test_sdk_success_returns_a_plain_dict(monkeypatch: pytest.MonkeyPatch) -> No
         "msg_test"
     )
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-" + "ant-" + "x" * 30)
-    assert AnthropicTransport(LIMITS).kind == "live"  # builds the real client, no request sent
+    transport = AnthropicTransport(LIMITS)  # builds the real client, no request sent
+    assert transport.kind == "live"
+    transport.close()
 
 
 # ---------------------------------------------------------------- replay

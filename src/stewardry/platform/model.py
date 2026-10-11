@@ -267,6 +267,10 @@ class AnthropicTransport:
         result: dict[str, Any] = message.to_dict()
         return result
 
+    def close(self) -> None:
+        """Close the SDK client's connection pool."""
+        self._client.close()
+
 
 # -------------------------------------------------------------- the boundary
 

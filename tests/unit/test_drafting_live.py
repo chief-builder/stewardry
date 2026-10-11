@@ -45,11 +45,13 @@ def test_record_the_drafting_smoke_scenario(world: Engine, log: AuditLog, tmp_pa
     setup = make_setup(world, log, tmp_path, *smoke_questionnaire(tmp_path))
     shutil.rmtree(RECORDINGS, ignore_errors=True)
     limits = load_limits(ROOT / "policies/model-limits.yaml")
-    transport = RecordingTransport(
-        AnthropicTransport(limits), ReplayStore(RECORDINGS / "model"), Redactor()
-    )
+    live = AnthropicTransport(limits)
+    transport = RecordingTransport(live, ReplayStore(RECORDINGS / "model"), Redactor())
     run = setup.start("live-model-eval")
-    assert setup.drafting(transport).run(run) is True
+    try:
+        assert setup.drafting(transport).run(run) is True
+    finally:
+        live.close()
     result = outcomes(world)
     assert sorted(result) == sorted(QUESTIONS)
     model = load_agent_policy(ROOT / "policies/agents/questionnaire-agent.yaml").policy.model
