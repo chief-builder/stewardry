@@ -3,6 +3,11 @@
     "Budgets": {
       "additionalProperties": false,
       "properties": {
+        "per_question_model_calls": {
+          "exclusiveMinimum": 0,
+          "title": "Per Question Model Calls",
+          "type": "integer"
+        },
         "per_run_model_calls": {
           "exclusiveMinimum": 0,
           "title": "Per Run Model Calls",
@@ -30,7 +35,8 @@
       "required": [
         "per_run_usd",
         "per_run_model_calls",
-        "per_run_tool_calls"
+        "per_run_tool_calls",
+        "per_question_model_calls"
       ],
       "title": "Budgets",
       "type": "object"
