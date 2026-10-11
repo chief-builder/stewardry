@@ -270,3 +270,30 @@ def test_roles_commands_need_a_database_and_a_valid_file(
     capsys.readouterr()
     assert main(["roles", "apply", str(bad), "--as", "x", "--bootstrap"]) == 1
     assert "at least one platform_engineer" in capsys.readouterr().err
+
+
+def test_serve_needs_settings_and_a_database(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.delenv("STEWARDRY_HUB_ISSUER", raising=False)
+    monkeypatch.delenv("STEWARDRY_HUB_CLIENT_SECRET", raising=False)
+    assert main(["serve"]) == 2
+    assert "STEWARDRY_HUB_ISSUER, STEWARDRY_HUB_CLIENT_SECRET" in capsys.readouterr().err
+    monkeypatch.setenv("STEWARDRY_HUB_ISSUER", "http://hub.test/realms/mcp")
+    monkeypatch.setenv("STEWARDRY_HUB_CLIENT_SECRET", "secret-value-123")
+    monkeypatch.setenv("STEWARDRY_DATA_DIR", str(tmp_path / "data"))
+    assert main(["serve"]) == 2  # no database yet
+
+
+def test_serve_runs_the_app_on_localhost(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _migrated(tmp_path, monkeypatch)
+    monkeypatch.setenv("STEWARDRY_HUB_ISSUER", "http://hub.test/realms/mcp")
+    monkeypatch.setenv("STEWARDRY_HUB_CLIENT_SECRET", "secret-value-123")
+    calls: dict[str, object] = {}
+    monkeypatch.setattr("uvicorn.run", lambda app, **kw: calls.update(app=app, **kw))
+    assert main(["serve"]) == 0
+    assert calls["host"] == "127.0.0.1" and calls["port"] == 8700
+    out = capsys.readouterr().out
+    assert "public URL http://localhost:8700" in out and "secret-value" not in out
