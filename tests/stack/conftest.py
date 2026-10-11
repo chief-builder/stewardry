@@ -20,7 +20,8 @@ import httpx2
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-BROKER = ROOT.parent / "vendor-token-broker"
+# The pinned broker checkout (CLAUDE.md); CI checks it out inside the workspace.
+BROKER = Path(os.environ.get("STEWARDRY_BROKER_CHECKOUT", ROOT.parent / "vendor-token-broker"))
 CONTAINER = "stewardry-stack-keycloak"
 PORT = 18180
 BASE = f"http://localhost:{PORT}"
@@ -59,7 +60,8 @@ def _local_network_only(monkeypatch: pytest.MonkeyPatch) -> None:
     original = socket.getaddrinfo
 
     def local(host: object, *args: object, **kwargs: object) -> object:
-        if str(host) not in LOCAL:
+        name = host.decode() if isinstance(host, bytes) else str(host)
+        if name not in LOCAL:
             raise RuntimeError(f"stack tests may only reach localhost, not {host}")
         return original(host, *args, **kwargs)  # type: ignore[arg-type]
 
@@ -109,3 +111,69 @@ def hub() -> Iterator[Hub]:
         yield Hub(BASE, ISSUER, "admin", password)
     finally:
         _docker("rm", "-f", CONTAINER, check=False)
+
+
+# ------------------------------------------------- the broker's stand-in stack
+
+BROKER_COMPOSE = BROKER / "tests/stack/docker-compose.yml"
+OVERRIDE = ROOT / "deploy/stack/compose.override.yml"
+HUB_ISSUER = "http://localhost:8180/realms/mcp"
+GATEWAY_URL = "http://localhost:8500/mcp"
+BROKER_URL = "http://localhost:8600"
+MOCK_MCP = "http://localhost:8330"
+
+
+def _compose(password: str, *args: str) -> subprocess.CompletedProcess[str]:
+    """docker compose with the pinned broker file, Stewardry's override, no .env,
+    and a clean environment (no vendor credentials from the caller's shell)."""
+    env = {k: v for k, v in os.environ.items() if k in ("PATH", "HOME", "DOCKER_HOST", "TMPDIR")}
+    env["STEWARDRY_STACK_KC_ADMIN_PASSWORD"] = password
+    return subprocess.run(  # noqa: S603 - fixed compose arguments
+        [  # noqa: S607 - docker from PATH, as in the broker's own tests
+            "docker",
+            "compose",
+            "--env-file",
+            "/dev/null",
+            "-f",
+            str(BROKER_COMPOSE),
+            "-f",
+            str(OVERRIDE),
+            "--profile",
+            "gateway",
+            *args,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+        cwd=BROKER_COMPOSE.parent,
+    )
+
+
+@dataclass(frozen=True)
+class BrokerStack:
+    admin_password: str
+
+
+@pytest.fixture(scope="session")
+def broker_stack() -> Iterator[BrokerStack]:
+    """Starts the broker's gateway-profile stack from the pinned checkout and
+    removes it afterwards. Refuses if any vtb-* container already exists:
+    recreating a real stack would wipe in-memory custody and disconnect every
+    real Atlassian account (G1, G10)."""
+    if os.environ.get("STEWARDRY_STACK") != "1":
+        pytest.skip("stack tier: set STEWARDRY_STACK=1 (make test-stack)")
+    existing = _docker("ps", "-a", "--filter", "name=^vtb-", "--format", "{{.Names}}").stdout
+    if existing.strip():
+        pytest.fail(
+            "refusing to start: vtb-* containers exist (" + ", ".join(existing.split()) + "). "
+            "They may be a real stack holding connections; stop it yourself first."
+        )
+    password = secrets.token_urlsafe(24)
+    up = _compose(password, "up", "-d", "--build", "--wait")
+    try:
+        if up.returncode != 0:
+            pytest.fail("the stand-in stack did not start:\n" + up.stderr[-2000:])
+        yield BrokerStack(password)
+    finally:
+        _compose(password, "down", "--remove-orphans")

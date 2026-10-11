@@ -321,3 +321,11 @@ def test_consent_needed_mid_run_pauses_the_run_and_task(
     with world.connect() as conn:
         assert conn.execute(select(runs.c.status)).scalar_one() == "paused"
         assert conn.execute(select(tasks.c.status)).scalar_one() == "paused"
+
+
+def test_wrapped_structured_results_are_unwrapped() -> None:
+    """Seen on the stand-in stack (S14b): a list result arrives as {"result": [...]}."""
+    from stewardry.platform.atlassian.adapter import _parse
+
+    assert _parse(ToolSuccess({"result": [{"id": "site"}]}, "")) == [{"id": "site"}]
+    assert _parse(ToolSuccess({"result": 1, "other": 2}, "")) == {"result": 1, "other": 2}

@@ -86,8 +86,12 @@ class AtlassianSettings:
     def __post_init__(self) -> None:
         if not CLOUD_ID.fullmatch(self.cloud_id):
             raise ValueError("cloud_id must be the site's UUID")
-        if "/v1/authorize/atlassian?" not in self.consent_url_prefix:
-            raise ValueError("consent_url_prefix must be the broker's Atlassian authorize path")
+        # The vendor name in the path is the broker registry's (`atlassian` on the
+        # real stack, `mockhub-atlassian` on the stand-in), so it is configured.
+        if "/v1/authorize/" not in self.consent_url_prefix or not self.consent_url_prefix.endswith(
+            "?txn="
+        ):
+            raise ValueError("consent_url_prefix must be a broker authorize path ending in ?txn=")
 
 
 @dataclass(frozen=True)
@@ -102,8 +106,13 @@ class ConnectRefused(Exception):
 
 
 def _parse(outcome: ToolSuccess) -> Any:
-    if outcome.structured is not None:
-        return outcome.structured
+    structured = outcome.structured
+    if isinstance(structured, Mapping) and set(structured) == {"result"}:
+        # MCP structured content must be an object on 2025-11-25, so servers
+        # wrap other values (a list of sites, for example) as {"result": ...}.
+        return structured["result"]
+    if structured is not None:
+        return structured
     try:
         return json.loads(outcome.text)
     except json.JSONDecodeError:
