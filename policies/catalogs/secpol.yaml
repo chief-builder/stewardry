@@ -1,0 +1,112 @@
+# Policy page catalog referenced by policies/agents/questionnaire-agent.yaml.
+schema_version: 1
+catalog: secpol
+space: SECPOL
+description: Synthetic security policies the questionnaire agent may read (agent-visible). Page IDs are
+  the synthetic Confluence page IDs; real IDs are recorded at setup (S15).
+pages:
+- page_id: '101'
+  policy_id: SEC-01
+  title: Information Security Program
+  classification: internal
+  status: current
+- page_id: '102'
+  policy_id: SEC-02
+  title: Access Control
+  classification: internal
+  status: current
+- page_id: '103'
+  policy_id: SEC-03
+  title: Authentication
+  classification: internal
+  status: current
+- page_id: '104'
+  policy_id: SEC-04
+  title: Privileged Access
+  classification: confidential
+  status: current
+- page_id: '105'
+  policy_id: SEC-05
+  title: Encryption and Key Management
+  classification: internal
+  status: current
+- page_id: '106'
+  policy_id: SEC-06
+  title: Data Classification and Handling
+  classification: internal
+  status: current
+- page_id: '107'
+  policy_id: SEC-07
+  title: Data Retention and Disposal
+  classification: internal
+  status: current
+- page_id: '108'
+  policy_id: SEC-08
+  title: Logging and Monitoring
+  classification: internal
+  status: current
+- page_id: '109'
+  policy_id: SEC-09
+  title: Incident Response
+  classification: confidential
+  status: current
+- page_id: '110'
+  policy_id: SEC-10
+  title: Vulnerability Management
+  classification: internal
+  status: current
+- page_id: '111'
+  policy_id: SEC-11
+  title: Secure Development
+  classification: internal
+  status: current
+- page_id: '112'
+  policy_id: SEC-12
+  title: Change Management
+  classification: internal
+  status: current
+- page_id: '113'
+  policy_id: SEC-13
+  title: Vendor Risk Management
+  classification: internal
+  status: current
+- page_id: '114'
+  policy_id: SEC-14
+  title: Business Continuity and Disaster Recovery
+  classification: internal
+  status: current
+- page_id: '115'
+  policy_id: SEC-15
+  title: Backup
+  classification: internal
+  status: current
+- page_id: '116'
+  policy_id: SEC-16
+  title: Endpoint Security
+  classification: internal
+  status: current
+- page_id: '117'
+  policy_id: SEC-17
+  title: Network Security
+  classification: confidential
+  status: current
+- page_id: '118'
+  policy_id: SEC-18
+  title: Personnel Security and Training
+  classification: internal
+  status: current
+- page_id: '119'
+  policy_id: SEC-19
+  title: Physical Security
+  classification: internal
+  status: current
+- page_id: '120'
+  policy_id: SEC-20
+  title: Privacy and Customer Data Processing
+  classification: internal
+  status: current
+- page_id: '121'
+  policy_id: SEC-21
+  title: Encryption Standard (2024)
+  classification: internal
+  status: superseded
