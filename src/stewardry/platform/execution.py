@@ -32,7 +32,7 @@ import json
 import uuid
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any, Literal, NoReturn
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from sqlalchemy import Connection, Engine, insert, select, update
@@ -225,8 +225,11 @@ class Verdict:
     stop: Stop | None = None
 
 
-def decide(facts: CallFacts, request: RequestCheck) -> Verdict:
-    """Pure. The order is the table in the module docstring."""
+def authority_verdict(facts: CallFacts) -> Verdict | None:
+    """Checks 1-6: may this run act at all right now? None means yes. Pure.
+
+    Model calls (S6) pass through this same boundary.
+    """
     if facts.run_status != "running":
         return Verdict(False, f"run is {facts.run_status}", "halt")
     if facts.agent_problem:
@@ -239,6 +242,14 @@ def decide(facts: CallFacts, request: RequestCheck) -> Verdict:
         return Verdict(False, "acting user is no longer assigned to this customer", "pause")
     if facts.denied_calls >= MAX_DENIED_CALLS:
         return Verdict(False, "too many refused calls in this run", "fail")
+    return None
+
+
+def decide(facts: CallFacts, request: RequestCheck) -> Verdict:
+    """Pure. The order is the table in the module docstring."""
+    authority = authority_verdict(facts)
+    if authority is not None:
+        return authority
     if request.problem:
         return Verdict(False, request.problem)
     if facts.tool_calls_used >= facts.tool_call_budget:
@@ -319,7 +330,7 @@ def _counter(conn: Connection, run_id: str, name: str) -> int:
     return int(value or 0)
 
 
-def _increment(conn: Connection, run_id: str, *names: str) -> None:
+def increment_counters(conn: Connection, run_id: str, *names: str) -> None:
     for name in names:
         current = _counter(conn, run_id, name)
         if current == 0:
@@ -398,7 +409,7 @@ class Executor:
                 )
             )
             self.log.append(
-                conn, self._event(run, "run.started", "succeeded", {"provenance": provenance})
+                conn, self.event(run, "run.started", "succeeded", {"provenance": provenance})
             )
         return run
 
@@ -416,7 +427,7 @@ class Executor:
             )
             self.log.append(
                 conn,
-                self._event(run, "run.finished", "succeeded", {"status": status, "reason": reason}),
+                self.event(run, "run.finished", "succeeded", {"status": status, "reason": reason}),
             )
 
     # ---------------------------------------------------------------- calls
@@ -468,6 +479,17 @@ class Executor:
         )
         return facts, bound, current_policy, _counter(conn, run.run_id, f"op:{call.name}")
 
+    def check_boundary(self, run: RunContext, boundary: str) -> tuple[Policy, Policy]:
+        """Checks 1-6 for work that is not a tool call (a model call). Stops the
+        run as `call` would; returns the bound and current policies."""
+        probe = ToolCall(f"({boundary})", {})
+        with self.engine.connect() as conn:
+            facts, bound, current, _ = self.gather(conn, run, probe)
+        verdict = authority_verdict(facts)
+        if verdict is not None:
+            self.stop(run, verdict, {"boundary": boundary}, f"{boundary}.call")
+        return bound, current
+
     def call(self, run: RunContext, call: ToolCall) -> ToolResult:
         with self.engine.connect() as conn:
             facts, bound, current, op_calls = self.gather(conn, run, call)
@@ -482,13 +504,13 @@ class Executor:
         }
 
         if verdict.stop is not None:
-            self._stop(run, verdict, details)
+            self.stop(run, verdict, details)
         if not verdict.allowed:
             with self.engine.begin() as conn:
-                _increment(conn, run.run_id, "denied_calls")
+                increment_counters(conn, run.run_id, "denied_calls")
                 self.log.append(
                     conn,
-                    self._event(run, "tool.call", "denied", details | {"reason": verdict.reason}),
+                    self.event(run, "tool.call", "denied", details | {"reason": verdict.reason}),
                 )
             return ToolResult(False, error=verdict.reason)
 
@@ -506,11 +528,18 @@ class Executor:
             details["error_type"] = type(exc).__name__
         with self.engine.begin() as conn:
             names = ["tool_calls"] + ([f"op:{call.name}"] if spec.kind == "operation" else [])
-            _increment(conn, run.run_id, *names)
-            self.log.append(conn, self._event(run, "tool.call", outcome, details))
+            increment_counters(conn, run.run_id, *names)
+            self.log.append(conn, self.event(run, "tool.call", outcome, details))
         return result
 
-    def _stop(self, run: RunContext, verdict: Verdict, details: dict[str, Any]) -> None:
+    def stop(
+        self,
+        run: RunContext,
+        verdict: Verdict,
+        details: dict[str, Any],
+        event_type: str = "tool.call",
+    ) -> NoReturn:
+        """Pause or fail the run (and pause its task), audit why, and raise."""
         assert verdict.stop is not None and verdict.reason is not None  # noqa: S101
         with self.engine.begin() as conn:
             if verdict.stop in ("pause", "fail"):
@@ -531,16 +560,16 @@ class Executor:
                     )
             self.log.append(
                 conn,
-                self._event(
+                self.event(
                     run,
-                    "tool.call",
+                    event_type,
                     "denied",
                     details | {"reason": verdict.reason, "run_stopped": verdict.stop},
                 ),
             )
         raise RunStopped(verdict.reason, verdict.stop)
 
-    def _event(
+    def event(
         self, run: RunContext, event_type: str, outcome: str, details: dict[str, Any]
     ) -> AuditEvent:
         return AuditEvent(
