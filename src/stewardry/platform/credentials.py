@@ -23,14 +23,30 @@ class GatewayCredential:
             raise ValueError("expires_at must be timezone-aware")
 
 
+@dataclass(frozen=True)
+class _Entry:
+    sub: str
+    credential: GatewayCredential
+    refresh_token: str | None = field(default=None, repr=False)
+
+
 class CredentialStore:
+    """Per-session credentials. A session's refresh token renews its credential
+    while the hub session lasts (G6); it is never written anywhere."""
+
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._by_session: dict[str, tuple[str, GatewayCredential]] = {}
+        self._by_session: dict[str, _Entry] = {}
 
-    def put(self, session_id: str, sub: str, credential: GatewayCredential) -> None:
+    def put(
+        self,
+        session_id: str,
+        sub: str,
+        credential: GatewayCredential,
+        refresh_token: str | None = None,
+    ) -> None:
         with self._lock:
-            self._by_session[session_id] = (sub, credential)
+            self._by_session[session_id] = _Entry(sub, credential, refresh_token)
 
     def remove_session(self, session_id: str) -> None:
         with self._lock:
@@ -39,8 +55,20 @@ class CredentialStore:
     def get(self, sub: str, now: dt.datetime) -> GatewayCredential | None:
         """The latest-expiring unexpired credential of any live session of `sub`."""
         with self._lock:
-            live = [c for s, c in self._by_session.values() if s == sub and c.expires_at > now]
+            live = [
+                e.credential
+                for e in self._by_session.values()
+                if e.sub == sub and e.credential.expires_at > now
+            ]
         return max(live, key=lambda c: c.expires_at, default=None)
+
+    def needs_refresh(self, session_id: str, now: dt.datetime, margin: dt.timedelta) -> str | None:
+        """The session's refresh token if its credential expires within `margin`."""
+        with self._lock:
+            entry = self._by_session.get(session_id)
+        if entry is None or entry.refresh_token is None:
+            return None
+        return entry.refresh_token if entry.credential.expires_at - now <= margin else None
 
     def __repr__(self) -> str:
         return f"CredentialStore(sessions={len(self._by_session)})"
