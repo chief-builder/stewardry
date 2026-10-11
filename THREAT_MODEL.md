@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S4a (access mapping and task grants), 2026-10-10. Each milestone
+Status: updated for Milestone 1, step S4b (web sign-in and sessions), 2026-10-10. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -51,6 +51,10 @@ flowchart LR
 | Changed hub subject reusing a known username | Sign-in is refused until a platform engineer re-maps it with an explicit flag. The old row keeps its history | S4a |
 | Over-broad Atlassian reads (`executeRead`, `discover`) | Per-agent policy and platform baseline denies in Stewardry. From S3, applying a policy that names anything outside the baseline is refused and audited; runtime enforcement on every call lands in S5 and S7 | S3, S5, S7 (ADR 0009) |
 | An agent keeps running after it is paused or retired, or a model or tool change skips evaluation | Registry lifecycle: `check_runnable` refuses unregistered, discovery-stage, paused, and retired agents, and is called at every controlled boundary from S5. A change to model, operations, or model tools requires an accepted eval before shadow or later | S3, S5 |
+| Forged or replayed sign-in | OIDC authorization code with PKCE (S256), single-use state tied to the browser by a short-lived cookie, a nonce, and ID-token checks: signature (PS256/ES256 only), issuer, audience, `azp`, expiry. Callback replays and cross-browser callbacks are refused and audited | S4b |
+| Cross-site request forgery on state-changing forms | A per-session CSRF token compared in constant time, plus an `Origin` check. Cookies are HttpOnly and SameSite=Lax, and Secure under HTTPS | S4b |
+| Hub group claims used for authority | Ignored: authority comes only from Stewardry's access mapping (ADR 0008). Tested with `groups: [grc, platform_engineer]` on a Sales user | S4b |
+| Hub tokens reaching the browser, pages, or logs | Tokens are held in server memory only. The browser holds an opaque session ID. Pages are `no-store`, with `Referrer-Policy: no-referrer` and a CSP without scripts. A test scans pages and the audit log for token values | S4b |
 | Unauthorized registry or lifecycle change | Role checks against Stewardry's role mapping (platform engineer and engagement owner); refusals are audited as `denied` | S3 |
 | An outage shown as missing consent | Consent only from structured elicitation; unknown errors fail closed | S7, S14b (ADR 0010) |
 | Credential leakage into logs, prompts, audit, or artifacts | One shared list of secret patterns: the repo scan (S0), redaction of audit events and `stewardry` log records (S2), plus no-token tests | S0, S2, S6, S14b |
@@ -94,15 +98,17 @@ These are the broker's documented limitations. Stewardry does not hide them:
 - The test hub and custody run in dev mode with in-memory storage (G1).
   Restarts disconnect every Atlassian account.
 
-## Interim limitation: CLI identity (until S4b)
+## Known limitation: CLI identity
 
-The `stewardry registry` and `stewardry roles` commands take `--as <sub>`. The CLI is a local
-administrative tool. That subject is **asserted by the operator**, not
-authenticated: it is checked against Stewardry's role mapping and recorded
-in the audit log, but anyone with shell access to the data directory could
-assert any subject. Authenticated sign-in arrives with the web app in S4b.
-Until then, registry changes made through the CLI are attributed, not
-authenticated.
+The web app authenticates people through the hub (S4b). The administrative
+CLI does not: `stewardry registry` and `stewardry roles` take `--as <sub>`,
+which is **asserted by the operator**. It is checked against Stewardry's role
+mapping and recorded in the audit log, but anyone with shell access to the
+data directory could assert any subject. Registry and access-mapping changes
+made through the CLI are therefore attributed, not authenticated. Anyone
+with that shell access also controls the database file itself (see "Audit
+integrity"). Moving these operations into the authenticated web app is
+backlog work, not Milestone 1.
 
 ## Non-claims
 

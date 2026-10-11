@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Stewardry{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header>
+    <strong>Stewardry</strong>
+    <span class="tag">synthetic exercise</span>
+    {% if session %}
+    <form method="post" action="/logout" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <span>{{ session.username }}</span>
+      <button type="submit">Sign out</button>
+    </form>
+    {% endif %}
+  </header>
+  <main>{% block main %}{% endblock %}</main>
+</body>
+</html>

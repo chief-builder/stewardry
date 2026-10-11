@@ -27,7 +27,11 @@ Milestone 1 is in progress. Done so far:
 - **S4a:** the access mapping, applied with `stewardry roles apply` (users,
   roles, and customer assignments; bootstrap and explicit remap), plus task
   submission, drafting grants, and identity resolution with no fallback
-  identity. Web sign-in comes in S4b.
+  identity.
+- **S4b:** the web app (`stewardry serve`): hub sign-in with PKCE, in-memory
+  sessions and credentials, CSRF protection, and the first task pages (Sales
+  submits a request; GRC authorizes or revokes drafting under their own
+  identity).
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
@@ -50,6 +54,27 @@ To create or migrate the local database, run `uv run stewardry db upgrade`.
 The data directory defaults to `~/.local/share/stewardry`; set
 `STEWARDRY_DATA_DIR` to choose another. It must be outside any git work
 tree, and it is created owner-only.
+
+## Running the web app
+
+The web app signs people in through the existing identity hub (see
+[setup verification](docs/setup-verification.md)). Set these in your shell.
+Never commit them:
+
+| Variable | Meaning |
+|---|---|
+| `STEWARDRY_HUB_ISSUER` | The hub realm, for example `http://localhost:8180/realms/mcp` |
+| `STEWARDRY_HUB_CLIENT_SECRET` | The `stewardry` client's secret (created by the S14 hub bootstrap) |
+| `STEWARDRY_HUB_CLIENT_ID` | Optional; default `stewardry` |
+| `STEWARDRY_PUBLIC_URL` | Optional; default `http://localhost:8700` |
+
+```bash
+uv run stewardry serve
+```
+
+It listens on `127.0.0.1:8700`. Sessions and gateway credentials live only
+in memory, so a restart signs everyone out and paused work waits until the
+authorizing user signs in again.
 
 ## Documentation
 

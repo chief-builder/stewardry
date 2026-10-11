@@ -262,6 +262,40 @@ def _add_roles_commands(commands: Any) -> None:
     show.set_defaults(handler=_roles)
 
 
+def _serve(args: argparse.Namespace) -> int:
+    import httpx2
+    import uvicorn
+
+    from stewardry.platform.credentials import CredentialStore
+    from stewardry.web.app import Services, create_app
+    from stewardry.web.hub import HubClient
+    from stewardry.web.sessions import SessionStore
+    from stewardry.web.settings import SettingsError, WebSettings
+
+    try:
+        settings = WebSettings.from_environment()
+    except SettingsError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    data_dir = _data_dir()
+    engine = _existing_engine(data_dir) if data_dir else None
+    if engine is None:
+        return EXIT_USAGE
+    hub = HubClient(
+        settings.hub_issuer,
+        settings.hub_client_id,
+        settings.hub_client_secret,
+        settings.redirect_uri,
+        httpx2.Client(timeout=15),
+        settings.hub_scope,
+    )
+    services = Services(settings, engine, hub, AuditLog(), SessionStore(), CredentialStore())
+    print(f"Stewardry on http://{args.host}:{args.port} (public URL {settings.public_url})")
+    uvicorn.run(create_app(services), host=args.host, port=args.port, log_level="info")
+    engine.dispose()
+    return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     install_log_redaction()
     parser = argparse.ArgumentParser(prog="stewardry")
@@ -289,6 +323,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     _add_registry_commands(commands)
     _add_roles_commands(commands)
+    serve = commands.add_parser("serve", help="run the web app (localhost only by default)")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8700)
+    serve.set_defaults(handler=_serve)
 
     args = parser.parse_args(argv)
     if not hasattr(args, "handler"):
