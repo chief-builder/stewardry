@@ -41,6 +41,7 @@ from stewardry.platform.audit import AuditLog
 from stewardry.platform.catalog import Catalog
 from stewardry.platform.credentials import GatewayCredential
 from stewardry.platform.db.schema import (
+    evidence_conflicts,
     jobs,
     question_drafts,
     task_questions,
@@ -322,19 +323,50 @@ class Drafting:
                 citations.append(Citation(snapshot, item.passage))
         return citations, problems
 
-    def _conflicts(self, conn: Connection, task_id: str) -> list[ConflictMarker]:
-        rows = conn.execute(
-            select(question_drafts.c.conflict_json, question_drafts.c.reasons_json).where(
-                question_drafts.c.task_id == task_id, question_drafts.c.conflict_json.is_not(None)
-            )
-        )
+    def _conflicts(self, conn: Connection) -> list[ConflictMarker]:
+        """Every recorded conflict, from any task: they are facts about policies."""
         return [
-            ConflictMarker(
-                frozenset(tuple(p) for p in json.loads(row.conflict_json)),
-                "; ".join(json.loads(row.reasons_json)),
-            )
-            for row in rows
+            ConflictMarker(frozenset(tuple(p) for p in json.loads(row.passages_json)), row.note)
+            for row in conn.execute(select(evidence_conflicts))
         ]
+
+    def _record_conflict(
+        self, run: RunContext, question: Question, citations: list[Citation]
+    ) -> None:
+        """Share a routed conflict with every task. The note names only policy
+        IDs and passage numbers, never the model's explanation."""
+        keys = sorted({c.key for c in citations})
+        names = sorted(
+            {
+                f"{c.snapshot.metadata.policy_id} {c.passage_ref}"
+                for c in citations
+                if c.snapshot.metadata is not None
+            }
+        )
+        note = "recorded conflict between " + " and ".join(names)
+        try:
+            with self.engine.begin() as conn:
+                conn.execute(
+                    insert(evidence_conflicts).values(
+                        passages_json=json.dumps([list(k) for k in keys]),
+                        note=note[:255],
+                        task_id=run.task_id,
+                        run_id=run.run_id,
+                        question_id=question.question_id,
+                        created_at=utcnow(),
+                    )
+                )
+                self.log.append(
+                    conn,
+                    self.executor.event(
+                        run,
+                        "evidence.conflict_recorded",
+                        "succeeded",
+                        {"question_id": question.question_id, "passages": names},
+                    ),
+                )
+        except IntegrityError:
+            pass  # already recorded by an earlier item or task
 
     def _submit(self, run: RunContext, args: BaseModel) -> Any:
         assert isinstance(args, SubmitAnswerArgs)  # noqa: S101
@@ -342,7 +374,7 @@ class Drafting:
         cache = EvidenceCache(self.engine, self.log, run)
         citations, problems = self._cite(cache, args.citations)
         with self.engine.connect() as conn:
-            conflicts = self._conflicts(conn, run.task_id)
+            conflicts = self._conflicts(conn)
         assessment = assess(args.strength, citations, conflicts, self.as_of())
         reasons = problems + assessment.reasons
         ready = assessment.approvable and not problems
@@ -375,9 +407,11 @@ class Drafting:
         question = self._current[run.run_id]
         citations, problems = self._cite(EvidenceCache(self.engine, self.log, run), args.passages)
         conflict = None
-        keys = sorted({c.key for c in citations if c.snapshot.passage(c.passage_ref)})
+        real = [c for c in citations if c.snapshot.eligible and c.snapshot.passage(c.passage_ref)]
+        keys = sorted({c.key for c in real})
         if args.reason == "conflict" and len(keys) >= 2:
             conflict = [list(k) for k in keys]
+            self._record_conflict(run, question, real)
         stored = self._store(
             run,
             question,

@@ -475,6 +475,24 @@ question_drafts = Table(
     ),
 )
 
+# Policy passages that disagree (for example backup retention of 35 days in
+# one policy and 90 in another). A conflict is a fact about the policies, not
+# about a customer, so it applies to every task: once recorded, any answer
+# citing one of its passages needs an expert. The note is built by Stewardry
+# from policy IDs and passage numbers, never from model or customer text.
+# Resolving a conflict (an expert fixing the policies) is later scope.
+evidence_conflicts = Table(
+    "evidence_conflicts",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("passages_json", Text, nullable=False, unique=True),  # sorted [[page, ref], ...]
+    Column("note", String(255), nullable=False),
+    Column("task_id", ForeignKey("tasks.task_id"), nullable=False),
+    Column("run_id", ForeignKey("runs.run_id"), nullable=False),
+    Column("question_id", String(32), nullable=False),
+    Column("created_at", UTCTimestamp, nullable=False),
+)
+
 SHADOW_VERDICTS = ("agree", "edit", "reject")
 
 # A GRC reviewer's verdict on a shadow draft (S12), kept for comparison with
