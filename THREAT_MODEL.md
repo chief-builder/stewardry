@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S14 (hub bootstrap), 2026-10-11. Each milestone
+Status: updated for Milestone 1, step S14b (gateway client and stand-in stack tests), 2026-10-12. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -79,6 +79,7 @@ flowchart LR
 | A known policy conflict missed in another task | Conflicts are recorded per policy passage (`evidence_conflicts`) and apply to every task. Any answer citing a conflicting passage needs an expert. The shared note names only policy IDs and passages, never model or customer text. A document can therefore make other tasks more cautious, but cannot add customer text to them or approve anything. Found by the 2026-10-11 live baseline (evals/reports/README.md) | S13 |
 | Hub bootstrap changing the broker's identity setup, or pointed at the wrong hub | It accepts only a local issuer for realm `mcp`, and the hub's discovery document must name exactly that issuer. It only adds: an existing client or user is never edited (differences are reported). The broker's clients, client scopes, and users are compared before and after, and any change stops it. No `offline_access`, groups, direct grants, or service account. Checked against the broker's pinned Keycloak and realm in the stack tier | S14 |
 | Hub admin credential or generated secrets leaking | The admin credential comes from the environment and is never printed or stored. Generated persona passwords and the client secret go only to the git-ignored `deploy/hub/.secrets.env` (0600); only entry names are printed. The stack test container gets its own random admin password and is removed afterwards | S14 |
+| A consent link reaching the wrong person, a background run, or a log; or an outage shown as consent (checked end to end) | The real MCP client takes the link only from a structured URL elicitation and declines it. Background runs pause with no link kept. Against the broker's stand-in stack: each outage (broker, upstream, hub, gateway) classified as unavailable; a pending revoke as `disconnect_pending`; a run under an unconnected user paused without reaching the upstream as anyone else; no Stewardry token in its logs, its audit, or the stack's container logs | S14b |
 | Overstated or mislabeled eval results | Each report carries exactly one provenance label (the generator refuses others) and the model, prompt, dataset, policy, control, and code versions. Raw and valid completion are separate. Zero-tolerance counts include failed runs. Rates under 20 items are labeled insufficient. Correctness stays "not graded" without author grades. Replay reports spend nothing and show no latency | S13 |
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
 | Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |

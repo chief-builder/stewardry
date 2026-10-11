@@ -93,6 +93,37 @@ from the pinned revision, each mapped to a class:
 everything ambiguous fails toward "unavailable". The spec's rule holds
 without changing the broker.
 
+## Implementation note (S14b, 2026-10-12)
+
+`platform/atlassian/mcp_client.py` is the real client (`mcp` 2.2.0, streamable
+HTTP, one session per call with the acting user's own token). It was tested
+against the broker's stand-in stack from the pinned checkout (`make
+test-stack`, also in CI):
+
+- **Consent: the link is captured and the elicitation declined.** The client
+  advertises URL elicitation, takes the link from the structured
+  elicitation, and declines it, so the gateway never waits on a browser
+  inside a Stewardry request. A background run pauses as `needs_consent` and
+  keeps no link (checked in the audit). A user's own Connect action shows the
+  link to that user. On the stand-in stack, finishing consent in the user's
+  browser after the decline worked, and the next call succeeded.
+- **The authorize path's vendor name comes from the broker registry.** It is
+  `mockhub-atlassian` on the stand-in stack and `atlassian` on the real
+  stack, so `consent_url_prefix` is configured per environment. It must
+  still be a broker `/v1/authorize/…?txn=` path.
+- **HTTP 401 is detected from the response status.** The SDK reports HTTP
+  errors only as a generic JSON-RPC error, so the client records each
+  response's status: 401 means `needs_signin`, a 5xx means `unavailable`.
+- **Observed classes on the stand-in stack:**
+  - declined: `consent_declined`;
+  - accepted but not finished: `consent_timeout`;
+  - broker, upstream, or hub paused: `unavailable`;
+  - gateway paused: `unavailable` (unreachable);
+  - a pending revoke: `disconnect_pending`;
+  - a token the gateway rejects: `needs_signin`.
+
+  No outage was reported as consent.
+
 ## Consequences
 
 - Bumping the broker pin needs a catalog review. The offline test enforces

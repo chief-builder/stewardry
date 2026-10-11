@@ -191,5 +191,19 @@ connected verification before connected access is claimed.
 |---|---|
 | Adapter builds only allow-listed arguments; `executeRead` and `discover` are unreachable; token strings never appear in results, logs, audit, or prompts | offline |
 | The snapshot's tool names and argument fields still match what the adapter sends | offline (reads the pinned snapshot) |
-| Sign-in, gateway call, consent relay, decline, timeout, broker outage that is not consent, disconnect then needs-consent, Alice and Bob kept separate, no token material in Stewardry logs | stack (the broker's stand-in Atlassian, no real credentials) |
+| Sign-in, gateway call, consent relay, decline, timeout, broker outage that is not consent, disconnect then needs-consent, Alice and Bob kept separate, no token material in Stewardry logs | stack (the broker's stand-in Atlassian, no real credentials). Implemented in S14b (`tests/stack/test_gateway_stack.py`) with two bootstrapped personas in place of alice and bob |
 | Site and account mapping, Jira field read, full-page read with version and hash, restricted-page denial, change detection after a manual Confluence edit | connected (step S15) |
+
+### Observed on the stand-in stack (S14b, 2026-10-12)
+
+- **Consent link:** the authorize URL's vendor segment is the broker
+  registry name: `mockhub-atlassian` on the stand-in stack and `atlassian` on
+  the real stack. `consent_url_prefix` is set per environment.
+- **Decline, then finish later:** declining the elicitation and then finishing
+  consent in the user's browser works. The next call succeeds.
+- **Wrapped results:** list results arrive as structured content
+  `{"result": [...]}`. The adapter unwraps them.
+- **Canned stand-in data:** the stand-in Atlassian server returns canned
+  data and accepts few arguments. Data shapes, site and account mapping, and
+  page versions are still verified only in the connected step S15 (G7, G8).
+

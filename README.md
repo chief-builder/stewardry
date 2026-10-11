@@ -78,6 +78,11 @@ Milestone 1 is in progress. Done so far:
   never edits, and writes a proposed access mapping. `make test-stack` checks
   it against a throwaway Keycloak from the broker's pinned image (needs
   Docker).
+- **S14b:** the real MCP client to the gateway, tested against the broker's
+  stand-in stack from the pinned checkout. The tests cover consent, outages,
+  disconnects, identity separation, and token hygiene. `make test-stack` and
+  CI both run it. Locally it refuses to start while any `vtb-*` container
+  exists.
 
 There are no approvals and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
