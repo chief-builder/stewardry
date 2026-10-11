@@ -6,7 +6,8 @@ Every model call goes through `ModelAccess.call`, which:
    run running, agent runnable, grant, role, customer;
 2. matches the transport to the run's provenance: live calls only for
    `connected` and `live-model-eval` runs, recorded responses only for
-   `offline-replay` runs (ADR 0007);
+   `offline-replay` runs, and scripted responses (test doubles and docs
+   examples) only for `scripted-example` runs (ADR 0007);
 3. uses the model settings of the run's bound policy version, and refuses if
    the current version changed them since (a gated change, ADR 0009);
 4. enforces budgets before calling: model calls and estimated USD per run (the
@@ -43,6 +44,13 @@ from stewardry.platform.policy import Policy
 
 LIVE_PROVENANCE = frozenset({"connected", "live-model-eval"})
 REPLAY_PROVENANCE = frozenset({"offline-replay"})
+SCRIPTED_PROVENANCE = frozenset({"scripted-example"})
+TransportKind = Literal["live", "replay", "scripted"]
+ALLOWED_PROVENANCE = {
+    "live": LIVE_PROVENANCE,
+    "replay": REPLAY_PROVENANCE,
+    "scripted": SCRIPTED_PROVENANCE,
+}
 
 
 # ------------------------------------------------------------- settings files
@@ -217,7 +225,7 @@ class TransportFatal(Exception):
 
 
 class Transport(Protocol):
-    kind: Literal["live", "replay"]
+    kind: TransportKind
 
     def send(self, payload: Mapping[str, Any], request_hash: str) -> dict[str, Any]: ...
 
@@ -227,7 +235,7 @@ class AnthropicTransport:
     every attempt is counted and audited here. The API key is resolved by the
     SDK from the environment (or an `ant auth` profile) and never passed in."""
 
-    kind: Literal["live", "replay"] = "live"
+    kind: TransportKind = "live"
 
     def __init__(self, limits: ModelLimits, client: Any = None) -> None:
         if client is None:
@@ -259,6 +267,10 @@ class AnthropicTransport:
         result: dict[str, Any] = message.to_dict()
         return result
 
+    def close(self) -> None:
+        """Close the SDK client's connection pool."""
+        self._client.close()
+
 
 # -------------------------------------------------------------- the boundary
 
@@ -284,8 +296,7 @@ class ModelAccess:
 
     def call(self, run: RunContext, request: ModelRequest) -> ModelResponse:
         bound, current = self.executor.check_boundary(run, "model")
-        allowed = LIVE_PROVENANCE if self.transport.kind == "live" else REPLAY_PROVENANCE
-        if run.provenance not in allowed:
+        if run.provenance not in ALLOWED_PROVENANCE[self.transport.kind]:
             self._fail(
                 run, f"a {self.transport.kind} model transport cannot serve a {run.provenance} run"
             )

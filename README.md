@@ -56,8 +56,14 @@ Milestone 1 is in progress. Done so far:
   user with its version, content hash, metadata, and numbered passages. A
   hash change invalidates earlier evidence, and the strength rubric labels
   stale, superseded, conflicting, and ineligible evidence as not approvable.
+- **S11:** shadow drafting. For each question, Claude lists and reads
+  policies through the controlled executor and either submits a cited answer
+  or routes the item to an expert. Deterministic checks decide what reaches
+  review. Drafting resumes after a restart without drafting anything twice.
+  Nothing is exported or shown to Sales. `make record-drafting` records a
+  small live-model scenario that the offline tests then replay.
 
-There is no workflow behavior yet. See the
+There are no review screens, no evals, and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
 
 ## Quickstart

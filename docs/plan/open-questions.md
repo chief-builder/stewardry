@@ -48,7 +48,8 @@ Q12, which S8 needs.
    off, so a run never silently changes model? This is proposed.
 8. **Model.** Accept `claude-opus-5-5` as the iteration 1 model?
 9. **Spend limits.** What daily and per-run spend ceilings should be the
-   starting operational budgets?
+   starting operational budgets? S11 added a per-question limit on model
+   calls (placeholder: 8).
 
 ### Process and scope
 

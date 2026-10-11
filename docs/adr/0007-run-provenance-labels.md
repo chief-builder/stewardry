@@ -28,6 +28,19 @@ its actual configuration and never from user input:
 separately. A label set by the runtime is harder to get wrong than a
 convention in documents.
 
+## Implementation note (S11, 2026-10-11)
+
+- **Model transports have a kind:** `live`, `replay`, or `scripted`. The
+  model boundary refuses a transport that does not match the run's label.
+  `scripted` (test doubles and docs examples) serves only
+  `scripted-example` runs. The offline drafting tests use it, and they are
+  not evidence.
+- **The drafting replay** (`replay/drafting-smoke/`) is recorded by
+  `make record-drafting` as a `live-model-eval` run against the fixture
+  adapter. Its replay therefore uses the same fixture adapter for Atlassian,
+  not recorded Atlassian responses. Recorded Atlassian responses arrive with
+  connected runs.
+
 ## Rejected alternatives
 
 - **Labels only in documentation:** easy to drift and impossible to test.

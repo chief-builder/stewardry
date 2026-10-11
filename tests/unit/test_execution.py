@@ -337,7 +337,16 @@ def test_per_operation_limit_refuses_further_calls(
 
 
 def test_tool_call_budget_fails_the_run(world: Engine, log: AuditLog, executor: Executor) -> None:
-    apply(world, log, budgets={"per_run_usd": 1, "per_run_model_calls": 5, "per_run_tool_calls": 2})
+    apply(
+        world,
+        log,
+        budgets={
+            "per_run_usd": 1,
+            "per_run_model_calls": 5,
+            "per_run_tool_calls": 2,
+            "per_question_model_calls": 8,
+        },
+    )
     run = drafting_run(world, log, executor)
     assert read(executor, run).ok and read(executor, run).ok
     with pytest.raises(RunStopped, match="budget exhausted") as stopped:

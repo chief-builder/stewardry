@@ -1,0 +1,58 @@
+{
+  "as_of": "2026-10-10",
+  "effort": "medium",
+  "model": "claude-opus-5-5",
+  "note": "Recorded live model responses; Atlassian was the fixture adapter.",
+  "outcomes": {
+    "Q09": {
+      "citations": [
+        [
+          "105",
+          "5.1"
+        ]
+      ],
+      "expert_reason": null,
+      "status": "ready_for_review",
+      "strength": "direct_current"
+    },
+    "Q14": {
+      "citations": [
+        [
+          "115",
+          "15.3"
+        ],
+        [
+          "107",
+          "7.2"
+        ]
+      ],
+      "expert_reason": "conflict",
+      "status": "needs_expert",
+      "strength": null
+    },
+    "Q25": {
+      "citations": [
+        [
+          "119",
+          "19.1"
+        ],
+        [
+          "119",
+          "19.2"
+        ]
+      ],
+      "expert_reason": "stale",
+      "status": "needs_expert",
+      "strength": null
+    },
+    "Q26": {
+      "citations": [],
+      "expert_reason": "missing",
+      "status": "needs_expert",
+      "strength": null
+    }
+  },
+  "prompt_version": "questionnaire-draft@1",
+  "provenance": "live-model-eval",
+  "recorded_on": "2026-10-11"
+}

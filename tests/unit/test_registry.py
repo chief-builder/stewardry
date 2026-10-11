@@ -130,7 +130,12 @@ def test_budget_change_keeps_evaluation_but_model_change_needs_a_new_one(
         db,
         log,
         agent_file(
-            policy__budgets={"per_run_usd": 2, "per_run_model_calls": 9, "per_run_tool_calls": 9}
+            policy__budgets={
+                "per_run_usd": 2,
+                "per_run_model_calls": 9,
+                "per_run_tool_calls": 9,
+                "per_question_model_calls": 9,
+            }
         ),
     )
     assert budget.created and not budget.reevaluation_required and budget.gated_changes == ()

@@ -74,6 +74,7 @@ class Budgets(_Strict):
     per_run_usd: Decimal = Field(gt=0, max_digits=8, decimal_places=2)
     per_run_model_calls: int = Field(gt=0)
     per_run_tool_calls: int = Field(gt=0)
+    per_question_model_calls: int = Field(gt=0)
 
 
 class Policy(_Strict):
@@ -251,3 +252,7 @@ def effective_stage_roles(bound: Policy, current: Policy, stage: str) -> frozens
 
 def effective_tool_call_budget(bound: Policy, current: Policy) -> int:
     return min(bound.budgets.per_run_tool_calls, current.budgets.per_run_tool_calls)
+
+
+def effective_question_model_calls(bound: Policy, current: Policy) -> int:
+    return min(bound.budgets.per_question_model_calls, current.budgets.per_question_model_calls)

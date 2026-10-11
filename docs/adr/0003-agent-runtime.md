@@ -79,6 +79,25 @@ testable. No runtime brings its own tools, filesystem, or network paths.
 - **Refusals** are recorded with their category and returned to the caller.
   No fallback model is used.
 
+## Implementation note (S11, 2026-10-11)
+
+`engagements/questionnaire/drafting.py` implements the drafting loop:
+
+- **One conversation per question.** It uses the four tools named above, with
+  `strict: true` schemas and `tool_choice` left at `auto`. The number of model
+  calls per question is capped by the new policy budget
+  `per_question_model_calls`. The system prompt is
+  `prompts/questionnaire-draft-1.md` (`questionnaire-draft@1`).
+- **Passages are sent as JSON tool results** with their passage numbers.
+  Document blocks with API citations are not used yet. Citations name a
+  policy ID and a passage number, and Stewardry checks each one against the
+  run's own evidence snapshots (S10). This keeps requests deterministic for
+  replay. Document blocks can be evaluated later as a gated change.
+- **The model learns only that an item was recorded.** The deterministic
+  checks' reasons go to reviewers, not back to the model.
+- **Jobs.** Each question is a leased job (10-minute lease, at most 3
+  attempts). A restart resumes in a new run without redrafting anything.
+
 ## Rejected alternatives
 
 - **Claude Agent SDK:** it ships built-in file, shell, and web tools and its

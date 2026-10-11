@@ -6,7 +6,7 @@ import socket
 from collections.abc import Iterator
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import anthropic
 import httpx2
@@ -28,6 +28,7 @@ from stewardry.platform.model import (
     ModelRequest,
     PricingTable,
     TransportFatal,
+    TransportKind,
     TransportRetryable,
     Usage,
     build_payload,
@@ -84,7 +85,7 @@ def message(
 
 
 class FakeTransport:
-    def __init__(self, script: list[Any], kind: Literal["live", "replay"] = "live") -> None:
+    def __init__(self, script: list[Any], kind: TransportKind = "live") -> None:
         self.script = list(script)
         self.kind = kind
         self.payloads: list[dict[str, Any]] = []
@@ -253,7 +254,15 @@ def test_successful_call_records_usage_cost_and_audit(
 
 @pytest.mark.parametrize(
     ("transport_kind", "provenance"),
-    [("replay", "live-model-eval"), ("live", "offline-replay"), ("live", "scripted-example")],
+    [
+        ("replay", "live-model-eval"),
+        ("live", "offline-replay"),
+        ("live", "scripted-example"),
+        ("scripted", "offline-replay"),
+        ("scripted", "live-model-eval"),
+        ("scripted", "connected"),
+        ("replay", "scripted-example"),
+    ],
 )
 def test_transport_must_match_run_provenance(
     world: Engine, log: AuditLog, executor: Executor, transport_kind: Any, provenance: str
@@ -263,6 +272,14 @@ def test_transport_must_match_run_provenance(
     with pytest.raises(RunStopped, match="cannot serve"):
         model.call(run, REQUEST)
     assert status(world, run) == "failed"
+
+
+def test_a_scripted_transport_serves_only_scripted_examples(
+    world: Engine, log: AuditLog, executor: Executor
+) -> None:
+    run = start(world, log, executor, "scripted-example")
+    model = access(world, log, executor, FakeTransport([message()], "scripted"))
+    assert model.call(run, REQUEST).stop_reason == "end_turn"
 
 
 def test_retries_are_bounded_and_audited(world: Engine, log: AuditLog, executor: Executor) -> None:
@@ -325,7 +342,14 @@ def test_missing_usage_is_unknown_not_zero_and_stops_the_run(
 
 def test_model_call_budget_fails_the_run(world: Engine, log: AuditLog, executor: Executor) -> None:
     apply(
-        world, log, budgets={"per_run_usd": 5, "per_run_model_calls": 2, "per_run_tool_calls": 10}
+        world,
+        log,
+        budgets={
+            "per_run_usd": 5,
+            "per_run_model_calls": 2,
+            "per_run_tool_calls": 10,
+            "per_question_model_calls": 8,
+        },
     )
     run = start(world, log, executor)
     model = access(world, log, executor, FakeTransport([message()]))
@@ -457,7 +481,9 @@ def test_sdk_success_returns_a_plain_dict(monkeypatch: pytest.MonkeyPatch) -> No
         "msg_test"
     )
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-" + "ant-" + "x" * 30)
-    assert AnthropicTransport(LIMITS).kind == "live"  # builds the real client, no request sent
+    transport = AnthropicTransport(LIMITS)  # builds the real client, no request sent
+    assert transport.kind == "live"
+    transport.close()
 
 
 # ---------------------------------------------------------------- replay

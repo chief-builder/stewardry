@@ -51,4 +51,5 @@ policy:
     per_run_usd: 5.00
     per_run_model_calls: 400
     per_run_tool_calls: 1200
+    per_question_model_calls: 8
   customer_scope: per_task

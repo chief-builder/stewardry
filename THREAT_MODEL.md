@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S10 (evidence snapshots and strength rubric), 2026-10-11. Each milestone
+Status: updated for Milestone 1, step S11 (shadow drafting workflow), 2026-10-11. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -68,6 +68,10 @@ flowchart LR
 | Stale, superseded, conflicting, or changed evidence supporting an approved answer | Each page read is snapshotted with a SHA-256 of the body, the policy metadata, and numbered passages. A changed hash or changed metadata invalidates earlier snapshots (audited). Superseded or overdue policies, ineligible or invalidated snapshots, missing passages, and recorded conflicts all give insufficient/conflicting/stale support, which cannot be approved. The rules can only lower the drafting stage's claimed strength. `revalidate` is provided now; calling it before an approved file is returned lands with export | S10, Milestone 3 |
 | Incomplete pages or unresolved macros used as evidence | Only a plain page layout is accepted; a missing body, any other element (Confluence `ac:` macros, macro wrappers, scripts), missing metadata, or no numbered passages make the snapshot ineligible | S10 |
 | Evidence one user read reaching another user or customer | Snapshots are keyed by run, acting user, task, customer, page, and version, all from the run's protected context, and every lookup filters on all of them. Tested with forged run contexts | S10 |
+| A drafted answer reaching review without real support (invented or unread citations, overclaimed strength) | Citations must name passages the run actually read, in eligible snapshots. The strength rubric can only lower the model's claim. Only a cited answer with direct current support is `ready_for_review`, and a database CHECK enforces that. Everything else, including refusals, answers without an outcome, and a used-up per-question budget, needs an expert | S11 |
+| The model approving, releasing, or acting as someone else | The model has only four tools, none of which approve or release. Unknown tools and arguments that name users are refused and audited. The model is told only that an item was recorded | S11 |
+| Duplicate or lost drafts after a crash | One leased job per question with an idempotency key, at most 3 attempts. One outcome per question (primary key). A restart resumes in a new run. A pause puts the question back in the queue | S11 |
+| Simulated model output mistaken for evidence | Transports have a kind. A scripted test double can only serve `scripted-example` runs | S11 |
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
 | Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |
 | Audit tampering | Append-only triggers, an insert trigger that only accepts the next link, a hash chain, and anchors. `stewardry audit verify` detects edits, deletions, reordering, and insertions; truncation and full rewrites are detected only against an anchor | S2 |

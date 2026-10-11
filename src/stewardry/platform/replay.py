@@ -19,10 +19,10 @@ import socket
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 from stewardry.platform.db.schema import utcnow
-from stewardry.platform.model import Transport, TransportFatal
+from stewardry.platform.model import Transport, TransportFatal, TransportKind
 from stewardry.platform.redaction import Redactor
 
 # Any of these set means live credentials are present in the environment.
@@ -88,7 +88,7 @@ class ReplayStore:
 
 
 class RecordingTransport:
-    kind: Literal["live", "replay"] = "live"
+    kind: TransportKind = "live"
 
     def __init__(self, inner: Transport, store: ReplayStore, redactor: Redactor) -> None:
         if inner.kind != "live":
@@ -104,7 +104,7 @@ class RecordingTransport:
 
 
 class ReplayTransport:
-    kind: Literal["live", "replay"] = "replay"
+    kind: TransportKind = "replay"
 
     def __init__(self, store: ReplayStore) -> None:
         self.store = store

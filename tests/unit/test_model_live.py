@@ -58,21 +58,25 @@ def test_one_real_call_is_recorded_with_usage_and_cost(world: Engine, log: Audit
     limits = load_limits(ROOT / "policies/model-limits.yaml").model_copy(
         update={"max_tokens": 1024, "daily_usd": Decimal("1.00")}
     )
+    transport = AnthropicTransport(limits)
     model = ModelAccess(
         world,
         log,
         executor,
-        AnthropicTransport(limits),
+        transport,
         load_pricing(ROOT / "policies/model-pricing.yaml"),
         limits,
     )
-    response = model.call(
-        run,
-        ModelRequest(
-            system="Answer in one word.",
-            messages=[{"role": "user", "content": "Reply with the word: ready"}],
-        ),
-    )
+    try:
+        response = model.call(
+            run,
+            ModelRequest(
+                system="Answer in one word.",
+                messages=[{"role": "user", "content": "Reply with the word: ready"}],
+            ),
+        )
+    finally:
+        transport.close()
     assert response.stop_reason in {"end_turn", "max_tokens"}
     assert response.usage is not None and response.usage.complete
     with world.connect() as conn:
