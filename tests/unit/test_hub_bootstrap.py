@@ -58,9 +58,9 @@ def test_first_run_adds_the_client_and_personas(tmp_path: Path) -> None:
 
     assert stat.S_IMODE(secrets_file.stat().st_mode) == 0o600
     entries = hb.read_secrets(secrets_file)
-    assert set(entries) == {hb.CLIENT_SECRET_ENTRY} | {hb.password_entry(u) for u in PERSONAS}
-    assert entries[hb.CLIENT_SECRET_ENTRY] == client["secret"]
-    assert sorted(result.secret_entries_written) == sorted(entries)
+    assert set(entries) == {hb.CLIENT_ENTRY} | {hb.persona_entry(u) for u in PERSONAS}
+    assert entries[hb.CLIENT_ENTRY] == client["secret"]
+    assert sorted(result.entries_written) == sorted(entries)
     assert not any(v in repr(result) for v in entries.values())
 
 
@@ -74,7 +74,7 @@ def test_a_second_run_changes_nothing(tmp_path: Path) -> None:
     assert len(fake.writes()) == writes  # no POSTs the second time
     assert secrets_file.read_bytes() == before
     assert second.client == "existed" and second.created_users == []
-    assert second.secret_entries_written == [] and second.drift == []
+    assert second.entries_written == [] and second.drift == []
     assert second.subjects == first.subjects
 
 
@@ -88,7 +88,7 @@ def test_an_existing_client_that_differs_is_reported_not_changed(tmp_path: Path)
     assert any("publicClient differs" in d for d in result.drift)
     assert any("redirectUris differs" in d for d in result.drift)
     assert any("secret is not in" in d for d in result.drift)
-    assert hb.CLIENT_SECRET_ENTRY not in hb.read_secrets(tmp_path / ".secrets.env")
+    assert hb.CLIENT_ENTRY not in hb.read_secrets(tmp_path / ".secrets.env")
 
 
 def test_when_ids_are_not_kept_the_real_subjects_are_proposed(
@@ -199,7 +199,7 @@ def test_the_command_prints_names_never_values(
     assert main(args) == 0
     out = capsys.readouterr().out
     assert "client stewardry: created" in out
-    assert hb.CLIENT_SECRET_ENTRY in out and "(0600)" in out
+    assert hb.CLIENT_ENTRY in out and "(0600)" in out
     for value in [*hb.read_secrets(secrets_file).values(), ADMIN_PASSWORD]:
         assert value not in out
     assert "platform" in mapping_out.read_text()

@@ -76,7 +76,7 @@ def test_the_bootstrap_is_idempotent(bootstrapped: dict[str, Any]) -> None:
     first, second = bootstrapped["first"], bootstrapped["second"]
     assert first.client == "created" and second.client == "existed"
     assert first.created_users == ["legal", "platform", "auditor", "owner", "sme"]
-    assert second.created_users == [] and second.secret_entries_written == []
+    assert second.created_users == [] and second.entries_written == []
     assert second.drift == []
     assert second.subjects == first.subjects
 
@@ -157,7 +157,7 @@ def test_a_persona_signs_in_and_platform_has_no_source_access(
         engine, log, subjects["owner"], "questionnaire-agent", "build", "docs/brief.md"
     )
 
-    settings = WebSettings(APP, hub.issuer, "stewardry", entries[hb.CLIENT_SECRET_ENTRY])
+    settings = WebSettings(APP, hub.issuer, "stewardry", entries[hb.CLIENT_ENTRY])
     with httpx2.Client(timeout=30) as http:
         client = HubClient(
             hub.issuer, "stewardry", settings.hub_client_secret, settings.redirect_uri, http
@@ -173,7 +173,7 @@ def test_a_persona_signs_in_and_platform_has_no_source_access(
             ArtifactStore(tmp_path / "a"),
         )
         app = TestClient(create_app(services), base_url=APP, follow_redirects=False)
-        response = _sign_in(app, "platform", entries[hb.password_entry("platform")])
+        response = _sign_in(app, "platform", entries[hb.persona_entry("platform")])
         assert response.status_code == 303, response.text
         assert "Roles: platform_engineer." in app.get("/").text
         assert app.get("/registry").status_code == 200

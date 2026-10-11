@@ -33,7 +33,7 @@ import httpx2
 import yaml
 
 LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1"})
-CLIENT_SECRET_ENTRY = "STEWARDRY_HUB_CLIENT_SECRET"  # noqa: S105 - an entry name, not a value
+CLIENT_ENTRY = "STEWARDRY_HUB_CLIENT_SECRET"  # an entry name, not a value
 # Client settings compared on an existing client (reported if different, never changed).
 CHECKED_CLIENT_FIELDS = (
     "publicClient",
@@ -59,11 +59,11 @@ class BootstrapResult:
     subjects: dict[str, str] = field(default_factory=dict)  # username -> sub
     fixed_ids_kept: dict[str, bool] = field(default_factory=dict)
     drift: list[str] = field(default_factory=list)
-    secret_entries_written: list[str] = field(default_factory=list)
+    entries_written: list[str] = field(default_factory=list)  # names only, never values
     broker_config_unchanged: bool = False
 
 
-def password_entry(username: str) -> str:
+def persona_entry(username: str) -> str:
     return f"STEWARDRY_PERSONA_PASSWORD_{username.upper()}"
 
 
@@ -207,14 +207,15 @@ def bootstrap(
     if existing is None:
         secret = secrets.token_urlsafe(32)
         admin.create_client(client_spec | {"secret": secret})
-        entries[CLIENT_SECRET_ENTRY] = secret
+        entries[CLIENT_ENTRY] = secret
+        result.entries_written.append(CLIENT_ENTRY)
         result.client = "created"
     else:
         result.client = "existed"
         for name in CHECKED_CLIENT_FIELDS:
             if name in existing and existing[name] != client_spec[name]:
                 result.drift.append(f"client {client_id}: {name} differs from the additions file")
-        if CLIENT_SECRET_ENTRY not in entries:
+        if CLIENT_ENTRY not in entries:
             result.drift.append(
                 f"client {client_id} exists but its secret is not in {secrets_file.name}; "
                 "it was not regenerated"
@@ -236,7 +237,8 @@ def bootstrap(
             result.existing_users.append(spec["username"])
             continue
         password = secrets.token_urlsafe(18)
-        entries[password_entry(spec["username"])] = password
+        entries[persona_entry(spec["username"])] = password
+        result.entries_written.append(persona_entry(spec["username"]))
         to_import.append(
             {
                 "id": spec["id"],
@@ -259,9 +261,8 @@ def bootstrap(
         result.subjects[spec["username"]] = str(user["id"])
         result.fixed_ids_kept[spec["username"]] = user["id"] == spec["id"]
 
-    if entries != stored:
+    if result.entries_written:
         write_secrets(secrets_file, entries)
-        result.secret_entries_written = sorted(set(entries) - set(stored))
 
     after_clients = _canonical(admin.clients(), skip=client_id)
     after_scopes = _canonical(admin.client_scopes())

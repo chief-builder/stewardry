@@ -284,9 +284,8 @@ def _hub_bootstrap(args: argparse.Namespace) -> int:
             print(f"warning: {username} did not keep its fixed ID; re-map after a recreate")
     for line in result.drift:
         print(f"warning: {line}")
-    if result.secret_entries_written:
-        names = ", ".join(result.secret_entries_written)
-        print(f"wrote {args.secrets_file} (0600): {names}")
+    if result.entries_written:
+        print(f"wrote {args.secrets_file} (0600), entries: {', '.join(result.entries_written)}")
     print("broker clients and scopes: unchanged")
     print(f"proposed access mapping: {args.mapping_out} (review, then `stewardry roles apply`)")
     return EXIT_OK
