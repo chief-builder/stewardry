@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S11 (shadow drafting workflow), 2026-10-11. Each milestone
+Status: updated for Milestone 1, step S12 (role-restricted views), 2026-10-11. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -72,6 +72,10 @@ flowchart LR
 | The model approving, releasing, or acting as someone else | The model has only four tools, none of which approve or release. Unknown tools and arguments that name users are refused and audited. The model is told only that an item was recorded | S11 |
 | Duplicate or lost drafts after a crash | One leased job per question with an idempotency key, at most 3 attempts. One outcome per question (primary key). A restart resumes in a new run. A pause puts the question back in the queue | S11 |
 | Simulated model output mistaken for evidence | Transports have a kind. A scripted test double can only serve `scripted-example` runs | S11 |
+| Reviewer-only content reaching Sales (answers, passages, policy names, strengths, expert reasons, screening excerpts, reviewer names, links) | Each page gets a server-side view model built for its role. The Sales model holds only the request, plain status text, and counts. Leak tests compare the Sales HTML with everything drafting stored | S12 |
+| Someone opening a page meant for another role or person | Task pages are for the requester only (404 for anyone else). Review is for a GRC reviewer assigned to the customer who did not request the task. The registry is for platform engineers, engagement owners, and auditors. Refusals are audited (`view.denied`); successful review views are audited too | S12 |
+| A confidential passage shown to a reviewer who could not read it | Passage text from a confidential policy is shown only to the reviewer whose own access read it; other reviewers see the citation without the text. This is Stewardry's rule. Per-page Confluence permissions for other viewers are not rechecked when the page is viewed (S15 verifies vendor-side denials) | S12, S15 |
+| A shadow verdict taken as approval | Verdicts (agree, edit, reject) are stored for comparison only. They change no draft and release nothing, and the page says so. A repeated form submission is a no-op | S12 |
 | Silent artifact corruption or substitution | Artifacts stored by SHA-256 and re-hashed on every read | S1 |
 | Invalid rows written by a code bug (an unknown status, a revoked grant with no reason, missing usage recorded as zero) | Database CHECK, foreign-key, and unique constraints, tested directly | S1 |
 | Audit tampering | Append-only triggers, an insert trigger that only accepts the next link, a hash chain, and anchors. `stewardry audit verify` detects edits, deletions, reordering, and insertions; truncation and full rewrites are detected only against an anchor | S2 |

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Stewardry: request {{ task.task_id[:8] }}{% endblock %}
+{% block main %}
+<p><a href="/">Back</a></p>
+<h2>Request {{ task.task_id[:8] }}</h2>
+<table>
+  <tr><th>Customer</th><td>{{ task.customer_id }}</td></tr>
+  <tr><th>Jira request</th><td>{{ task.jira_issue_key or "" }}</td></tr>
+  <tr><th>Status</th><td class="status">{{ task.status_text }}</td></tr>
+</table>
+{% if task.can_upload %}
+<section>
+  <h3>Upload the questionnaire</h3>
+  <p>Use the published .xlsx or .docx template.</p>
+  <form method="post" action="/tasks/{{ task.task_id }}/questionnaire" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="file" name="file" accept=".xlsx,.docx" required>
+    <button type="submit">Upload</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

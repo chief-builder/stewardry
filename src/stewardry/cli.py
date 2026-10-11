@@ -9,7 +9,13 @@ from typing import Any
 from sqlalchemy import Engine
 
 from stewardry import __version__
-from stewardry.config import DataDirError, database_path, ensure_data_dir, resolve_data_dir
+from stewardry.config import (
+    DataDirError,
+    artifacts_path,
+    database_path,
+    ensure_data_dir,
+    resolve_data_dir,
+)
 from stewardry.platform import access, audit, registry
 from stewardry.platform.audit import AuditLog
 from stewardry.platform.db import migrate
@@ -266,6 +272,7 @@ def _serve(args: argparse.Namespace) -> int:
     import httpx2
     import uvicorn
 
+    from stewardry.platform.artifacts import ArtifactStore
     from stewardry.platform.credentials import CredentialStore
     from stewardry.web.app import Services, create_app
     from stewardry.web.hub import HubClient
@@ -279,7 +286,7 @@ def _serve(args: argparse.Namespace) -> int:
         return EXIT_USAGE
     data_dir = _data_dir()
     engine = _existing_engine(data_dir) if data_dir else None
-    if engine is None:
+    if data_dir is None or engine is None:
         return EXIT_USAGE
     hub = HubClient(
         settings.hub_issuer,
@@ -289,7 +296,15 @@ def _serve(args: argparse.Namespace) -> int:
         httpx2.Client(timeout=15),
         settings.hub_scope,
     )
-    services = Services(settings, engine, hub, AuditLog(), SessionStore(), CredentialStore())
+    services = Services(
+        settings,
+        engine,
+        hub,
+        AuditLog(),
+        SessionStore(),
+        CredentialStore(),
+        ArtifactStore(artifacts_path(data_dir)),
+    )
     print(f"Stewardry on http://{args.host}:{args.port} (public URL {settings.public_url})")
     uvicorn.run(create_app(services), host=args.host, port=args.port, log_level="info")
     engine.dispose()

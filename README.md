@@ -62,8 +62,12 @@ Milestone 1 is in progress. Done so far:
   review. Drafting resumes after a restart without drafting anything twice.
   Nothing is exported or shown to Sales. `make record-drafting` records a
   small live-model scenario that the offline tests then replay.
+- **S12:** role-restricted pages. Sales uploads the questionnaire and sees
+  plain status only. GRC reviews drafts with citations, passage text, and
+  screening findings, and records shadow verdicts (not approvals). Platform
+  engineers, owners, and auditors see the agent registry.
 
-There are no review screens, no evals, and no export yet. See the
+There are no evals, no approvals, and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
 
 ## Quickstart

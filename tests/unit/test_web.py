@@ -4,12 +4,14 @@ import datetime as dt
 import json
 import re
 from collections.abc import Iterator
+from pathlib import Path
 
 import httpx2
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, select
 
+from stewardry.platform.artifacts import ArtifactStore
 from stewardry.platform.audit import AuditLog
 from stewardry.platform.credentials import CredentialStore
 from stewardry.platform.db.schema import audit_events, task_grants, tasks
@@ -31,10 +33,18 @@ def hub() -> FakeHub:
 
 
 @pytest.fixture
-def services(world: Engine, log: AuditLog, hub: FakeHub) -> Iterator[Services]:
+def services(world: Engine, log: AuditLog, hub: FakeHub, tmp_path: Path) -> Iterator[Services]:
     http = httpx2.Client(transport=hub.transport())
     client = HubClient(ISSUER, CLIENT_ID, CLIENT_SECRET, SETTINGS.redirect_uri, http)
-    yield Services(SETTINGS, world, client, log, SessionStore(), CredentialStore())
+    yield Services(
+        SETTINGS,
+        world,
+        client,
+        log,
+        SessionStore(),
+        CredentialStore(),
+        ArtifactStore(tmp_path / "a"),
+    )
     http.close()
 
 

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Stewardry: shadow review {{ review.task_id[:8] }}{% endblock %}
+{% block main %}
+<p><a href="/">Back</a></p>
+<h2>Shadow review: request {{ review.task_id[:8] }} ({{ review.customer_id }})</h2>
+<p class="notice">Shadow mode. Your verdicts are recorded to compare with the agent's drafts.
+   They do not approve anything, and nothing is released to Sales.</p>
+
+{% if review.file_findings %}
+<section>
+  <h3>Screening findings elsewhere in the file</h3>
+  <ul>{% for f in review.file_findings %}
+    <li><strong>{{ f.kind }}</strong> at {{ f.location }}: <q>{{ f.excerpt }}</q>{% if f.reason %} ({{ f.reason }}){% endif %}</li>
+  {% endfor %}</ul>
+</section>
+{% endif %}
+
+{% for item in review.items %}
+<section class="item" id="{{ item.question_id }}">
+  <h3>{{ item.question_id }} · {{ item.section }}</h3>
+  <p class="question">{{ item.text }}</p>
+  {% for f in item.findings %}
+  <p class="finding"><strong>{{ f.kind }}</strong> at {{ f.location }}: <q>{{ f.excerpt }}</q>{% if f.reason %} ({{ f.reason }}){% endif %}</p>
+  {% endfor %}
+
+  {% if item.status is none %}
+  <p>Not drafted yet.</p>
+  {% else %}
+  <p><strong>{{ "Ready for review" if item.status == "ready_for_review" else "Needs an expert" }}</strong>
+    {% if item.strength %} · {{ item.strength }}{% endif %}
+    {% if item.expert_reason %} · {{ item.expert_reason }}{% endif %}</p>
+  {% if item.answer %}<blockquote>{{ item.answer }}</blockquote>{% endif %}
+  {% if item.reasons %}<ul class="reasons">{% for r in item.reasons %}<li>{{ r }}</li>{% endfor %}</ul>{% endif %}
+  {% if item.citations %}
+  <table>
+    <tr><th>Citation</th><th>Passage</th></tr>
+    {% for c in item.citations %}
+    <tr><td>{{ c.policy_id }} §{{ c.passage }}{% if c.section %}<br><span class="tag">{{ c.section }}</span>{% endif %}</td>
+        <td>{% if c.text %}{{ c.text }}{% endif %}{% if c.note %} <em>({{ c.note }})</em>{% endif %}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% for v in item.verdicts %}
+  <p class="verdict">{{ v.reviewer }} · {{ v.verdict }} · {{ v.created_at }} UTC
+    {% if v.edited_answer %}: <q>{{ v.edited_answer }}</q>{% endif %}{% if v.reason %} ({{ v.reason }}){% endif %}</p>
+  {% endfor %}
+
+  {% if review.reviewable %}
+  <form method="post" action="/review/{{ review.task_id }}/{{ item.question_id }}/verdict">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="hidden" name="idempotency_key" value="{{ verdict_key }}-{{ item.question_id }}">
+    <label><input type="radio" name="verdict" value="agree" required> Agree</label>
+    <label><input type="radio" name="verdict" value="edit"> Edit</label>
+    <label><input type="radio" name="verdict" value="reject"> Reject</label>
+    <label>My answer (for an edit) <textarea name="edited_answer" rows="2"></textarea></label>
+    <label>Reason <input name="reason"></label>
+    <button type="submit">Record shadow verdict</button>
+  </form>
+  {% endif %}
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

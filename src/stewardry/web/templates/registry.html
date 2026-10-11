@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Stewardry: agent registry{% endblock %}
+{% block main %}
+<p><a href="/">Back</a></p>
+<h2>Agent registry</h2>
+<table>
+  <tr><th>Agent</th><th>Status</th><th>State</th><th>Risk tier</th><th>Owners</th>
+      <th>Policy version</th><th>Model</th><th>Prompt</th><th>Budgets</th></tr>
+  {% for a in agents %}
+  <tr><td>{{ a.agent_id }}<br><span class="tag">{{ a.name }}</span></td>
+      <td>{{ a.engagement_status }}</td><td>{{ a.operational_state }}</td><td>{{ a.risk_tier }}</td>
+      <td>business: {{ a.business_owner }}<br>operational: {{ a.operational_owner }}</td>
+      <td>{{ a.policy_hash or "none" }}{% if a.reevaluation_required %}<br><span class="tag">needs evaluation</span>{% endif %}</td>
+      <td>{{ a.model or "" }}</td><td>{{ a.prompt_version or "" }}</td>
+      <td>{% for k, v in a.budgets.items() %}{{ k }}: {{ v }}<br>{% endfor %}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
