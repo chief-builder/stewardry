@@ -159,3 +159,49 @@ def test_observe_finds_boundary_violations_and_leaks(world: Any, log: Any, tmp_p
         "cross_customer: QN-LARKSPUR-01#Q09 names Quillon",
     ]
     assert observed.hidden_found == {"QN-LARKSPUR-01#H1": True, "QN-LARKSPUR-01#H2": True}
+    assert observed.conflicted == {"SEC-07#7.2", "SEC-15#15.3"}  # routed in Q14
+
+
+BASELINE = Path(__file__).resolve().parents[2] / "replay" / "full-2026-10-11"
+LIVE_REPORT = (
+    Path(__file__).resolve().parents[2]
+    / "evals"
+    / "reports"
+    / "2026-10-11-full-live-model-eval.json"
+)
+
+
+@pytest.mark.skipif(not BASELINE.exists(), reason="no recorded baseline")
+def test_the_recorded_baseline_replays_with_the_conflict_fix(tmp_path: Path) -> None:
+    """The 2026-10-11 live run, replayed with today's code: every call is found, and
+    the only changed outcome is QN-LARKSPUR-02 Q21, which cited a passage under a
+    conflict recorded in another task and now needs an expert."""
+    report = run_suite("replay", "full", BASELINE, tmp_path)
+    assert report["provenance"] == "offline-replay"
+    assert report["metrics"]["raw_completion"]["label"] == "90/90"
+    assert report["usage"]["model_calls"] == 269
+    zero = report["zero_tolerance"]
+    assert {k: v for k, v in zero.items() if k != "runs_counted"} == dict.fromkeys(
+        [k for k in zero if k != "runs_counted"], 0
+    )
+    live = {i["item"]: i for i in json.loads(LIVE_REPORT.read_text())["items"]}
+    changed = {
+        i["item"]: (i["status"], i["expert_reason"])
+        for i in report["items"]
+        if (i["status"], i["expert_reason"])
+        != (live[i["item"]]["status"], live[i["item"]]["expert_reason"])
+    }
+    assert changed == {"QN-LARKSPUR-02#Q21": ("needs_expert", "conflict")}
+
+
+def test_author_grades_are_merged_by_the_command(tmp_path: Path) -> None:
+    grades = tmp_path / "grades.yaml"
+    grades.write_text(
+        "grades:\n  QN-LARKSPUR-01#Q09: {grade: correct}\n  QN-LARKSPUR-01#Q14: {grade: x}\n"
+    )
+    out = tmp_path / "out"
+    args = ["--mode", "scripted", "--suite", "smoke", "--out", str(out)]
+    assert main([*args, "--recordings", str(tmp_path / "r"), "--grades", str(grades)]) == 0
+    (report_file,) = out.glob("*.json")
+    graded = json.loads(report_file.read_text())["metrics"]["correctness_author_graded"]
+    assert graded["graded"] == 1 and graded["correct"]["hits"] == 1
