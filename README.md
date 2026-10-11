@@ -48,6 +48,10 @@ Milestone 1 is in progress. Done so far:
   with designed conflict, stale, ambiguous, and adversarial cases, and Jira
   requests in `fixtures/`. The expected outcomes and rubrics are in `evals/`,
   which runtime code can never reach.
+- **S9:** questionnaire ingest. Uploads in the two supported templates are
+  parsed into questions with stable cell locations; anything else is
+  rejected with a reason. Hidden content, comments, tracked changes, and
+  instruction-like text are recorded as screening findings for reviewers.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
