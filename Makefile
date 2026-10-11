@@ -5,7 +5,7 @@
 UV ?= uv
 RUN = $(UV) run --frozen
 
-.PHONY: help install lint format typecheck test docs secrets workflows actionlint check fixtures build test-live-model pinned-links vendored audit lock
+.PHONY: help install lint format typecheck test docs secrets workflows actionlint check fixtures build test-live-model record-drafting pinned-links vendored audit lock
 
 help:  ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/'
@@ -53,6 +53,9 @@ build: install  ## Build the wheel and sdist, then check the wheel installs and 
 
 test-live-model: install  ## Live-model smoke test: one real, tiny API call (needs a key; costs money)
 	STEWARDRY_LIVE_MODEL=1 $(RUN) pytest -m live_model --no-cov -s tests/unit/test_model_live.py
+
+record-drafting: install  ## Record the drafting smoke scenario against the live model (costs money)
+	STEWARDRY_LIVE_MODEL=1 $(RUN) pytest -m live_model --no-cov -s tests/unit/test_drafting_live.py
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py
