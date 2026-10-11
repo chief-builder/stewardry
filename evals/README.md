@@ -32,9 +32,9 @@ runtime code, which is why it may read this directory.
 
 | Command | Provenance | What it does |
 |---|---|---|
-| `make check` | `offline-replay` | Replays the recorded four-item smoke scenario (`replay/drafting-smoke/`) and scores it. This is the deterministic subset |
+| `make check` | `offline-replay` | Replays and scores the recorded four-item smoke scenario (`replay/drafting-smoke/`) and the recorded full baseline (`replay/full-2026-10-11/`). This is the deterministic subset |
 | `make eval-live` | `live-model-eval` | Drafts all three questionnaires against the live model, with the fixture adapter for Atlassian. Records every call to `replay/full-<date>/` and writes a report and a grading file. Costs money |
-| `make eval-replay RECORDINGS=replay/full-<date>` | `offline-replay` | Replays a recorded baseline offline |
+| `make eval-replay RECORDINGS=replay/full-<date> GRADES=evals/grades/full-<date>.yaml` | `offline-replay` | Replays a recorded baseline offline, merging the author's grades if given |
 
 Reports go to `reports/<date>-<suite>-<provenance>.json` and `.md`. Each one
 records:
@@ -55,6 +55,9 @@ Rules:
 - **Automatic checks are labeled as automatic.** These are citation presence
   and overlap with the expected citations; they are not faithfulness grades.
 - **Correctness is "not graded"** until the author fills in
-  `grades/<report>.yaml`.
+  `grades/<recordings>.yaml` and passes it with `--grades`. Grades belong to
+  the recorded answers, so one file serves the live report and every replay
+  of the same recordings. Each entry shows the draft, its citations, and the
+  expected key points and citations.
 - **Replays spend nothing.** Replay reports show the recorded calls' usage,
   say that no money was spent, and do not report latency.
