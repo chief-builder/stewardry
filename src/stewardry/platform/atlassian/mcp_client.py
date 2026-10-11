@@ -27,6 +27,7 @@ import anyio
 import httpx2
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
+from mcp.shared.exceptions import MCPError
 from mcp_types import (
     CallToolResult,
     ElicitRequestParams,
@@ -74,9 +75,11 @@ class McpGatewayClient:
         call_timeout_s: float = 60.0,
         consent_driver: ConsentDriver | None = None,
         connect: Connect | None = None,
+        http_transport: httpx2.AsyncBaseTransport | None = None,
     ) -> None:
         self.url = url
         self.connect = connect or (lambda http: streamable_http_client(url, http_client=http))
+        self.http_transport = http_transport  # tests only
         self.timeout_s = timeout_s
         self.call_timeout_s = call_timeout_s
         self.consent_driver = consent_driver
@@ -130,11 +133,23 @@ class McpGatewayClient:
                 return ElicitResult(action=action)
             return ElicitResult(action="decline")
 
+        # The SDK turns HTTP errors into a generic JSON-RPC error and drops the
+        # status, so every response's status is noted here.
+        statuses: list[int] = []
+
+        async def note(response: httpx2.Response) -> None:
+            statuses.append(response.status_code)
+
         headers = {"Authorization": f"Bearer {credential.access_token}"}
         timeout = httpx2.Timeout(self.timeout_s, read=self.call_timeout_s)
         try:
             async with (
-                httpx2.AsyncClient(headers=headers, timeout=timeout) as http,
+                httpx2.AsyncClient(
+                    headers=headers,
+                    timeout=timeout,
+                    event_hooks={"response": [note]},
+                    transport=self.http_transport,
+                ) as http,
                 self.connect(http) as (read, write),
                 ClientSession(read, write, elicitation_callback=on_elicit) as session,
             ):
@@ -143,12 +158,18 @@ class McpGatewayClient:
                     name, arguments, read_timeout_seconds=self.call_timeout_s
                 )
         except Exception as exc:  # the SDK raises exception groups from its task group
+            failed = [code for code in statuses if code >= 400]
+            if failed:
+                status = 401 if 401 in failed else failed[0]
+                return RawCall(tuple(elicited), None, status, f"gateway answered HTTP {status}")
             cause = _leaf(exc)
             if isinstance(cause, httpx2.HTTPStatusError):
                 status = cause.response.status_code
                 return RawCall(tuple(elicited), None, status, f"gateway answered HTTP {status}")
             if isinstance(cause, httpx2.TransportError | TimeoutError | OSError):
                 return RawCall(tuple(elicited), None, None, type(cause).__name__)
+            if isinstance(cause, MCPError):
+                return RawCall(tuple(elicited), None, None, f"MCP error {cause.error.code}")
             raise
         return RawCall(tuple(elicited), result)
 

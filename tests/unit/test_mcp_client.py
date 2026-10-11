@@ -128,14 +128,37 @@ def _failing(exc: Exception) -> Any:
     return connect
 
 
+def _answering(status: int) -> httpx2.MockTransport:
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        headers = {"www-authenticate": 'Bearer error="invalid_token"'} if status == 401 else {}
+        return httpx2.Response(status, json={"error": "nope"}, headers=headers)
+
+    return httpx2.MockTransport(handler)
+
+
 def test_http_401_means_sign_in_again() -> None:
-    request = httpx2.Request("POST", "http://localhost:8500/mcp")
-    response = httpx2.Response(401, request=request)
-    gateway_401 = httpx2.HTTPStatusError("401", request=request, response=response)
-    outcome = McpGatewayClient("u", connect=_failing(gateway_401)).call_tool(
+    """Through the SDK's real streamable HTTP client, which reports HTTP errors
+    only as a generic JSON-RPC error."""
+    outcome = McpGatewayClient(
+        "http://localhost:8500/mcp", http_transport=_answering(401)
+    ).call_tool(CREDENTIAL, "atlassian_atlassianUserInfo", {}, interactive=False)
+    assert outcome == SignInRequired()
+
+
+def test_http_5xx_from_the_gateway_is_unreachable() -> None:
+    outcome = McpGatewayClient(
+        "http://localhost:8500/mcp", http_transport=_answering(502)
+    ).call_tool(CREDENTIAL, "atlassian_atlassianUserInfo", {}, interactive=False)
+    assert outcome == GatewayUnreachable("gateway answered HTTP 502")
+
+
+def test_an_mcp_protocol_error_is_not_consent() -> None:
+    from mcp.shared.exceptions import MCPError
+
+    outcome = McpGatewayClient("u", connect=_failing(MCPError(-32601, "no such method"))).call_tool(
         CREDENTIAL, "atlassian_atlassianUserInfo", {}, interactive=False
     )
-    assert outcome == SignInRequired()
+    assert outcome == GatewayUnreachable("MCP error -32601")
 
 
 @pytest.mark.parametrize(
