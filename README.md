@@ -32,6 +32,10 @@ Milestone 1 is in progress. Done so far:
   sessions and credentials, CSRF protection, and the first task pages (Sales
   submits a request; GRC authorizes or revokes drafting under their own
   identity).
+- **S5:** the controlled executor. Every model tool call and every Atlassian
+  operation is checked against the platform baseline, the run's bound and
+  current policy, the acting user's grant, role, customer, and credential,
+  and the run's budget. Every decision is audited.
 
 There is no workflow behavior yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).

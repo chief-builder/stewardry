@@ -249,6 +249,9 @@ runs = Table(
     Column("policy_version_id", ForeignKey("agent_policy_versions.id"), nullable=False),
     Column("acting_sub", ForeignKey("users.sub"), nullable=False),
     Column("grant_id", ForeignKey("task_grants.grant_id")),
+    # Nullable only because SQLite adds columns that way; the executor always
+    # sets it (migration 0004).
+    Column("stage", String(32)),
     Column("provenance", String(32), nullable=False),
     Column("status", String(16), nullable=False),
     Column("started_at", UTCTimestamp, nullable=False),
@@ -256,6 +259,17 @@ runs = Table(
     CheckConstraint(_one_of("provenance", PROVENANCE), name="provenance_known"),
     CheckConstraint(_one_of("status", RUN_STATUSES), name="status_known"),
     CheckConstraint("ended_at IS NULL OR ended_at >= started_at", name="ended_after_started"),
+)
+
+# Per-run counters for budgets and limits: "tool_calls", "denied_calls", and
+# "op:<operation>" (S5). Updated in the same transaction as the audited call.
+run_counters = Table(
+    "run_counters",
+    metadata,
+    Column("run_id", ForeignKey("runs.run_id"), primary_key=True),
+    Column("name", String(96), primary_key=True),
+    Column("value", Integer, nullable=False),
+    CheckConstraint("value >= 0", name="value_non_negative"),
 )
 
 jobs = Table(
