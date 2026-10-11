@@ -1,0 +1,1194 @@
+report_generated_at: '2026-10-11T16:50:16Z'
+grades:
+  QN-LARKSPUR-01#Q01:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We maintain a written information security program that is
+      approved by our Chief Technology Officer and reviewed at least once a year.
+    cited:
+    - SEC-01#1.1
+    expected_key_points:
+    - written program
+    - reviewed at least annually
+    expected_citations:
+    - SEC-01#1.1
+  QN-LARKSPUR-01#Q02:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Our Security Engineering Lead owns our information security program
+      and reports security risks to company leadership every quarter. The program
+      is written down, approved by our Chief Technology Officer, and reviewed at least
+      once a year.
+    cited:
+    - SEC-01#1.2
+    - SEC-01#1.1
+    expected_key_points:
+    - Security Engineering Lead
+    expected_citations:
+    - SEC-01#1.2
+  QN-LARKSPUR-01#Q03:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. We do not currently hold an ISO 27001 certification, a SOC 2
+      report, or any other third-party security certification or attestation report.
+      Our information security program is built around common industry control frameworks.
+    cited:
+    - SEC-01#1.5
+    expected_key_points:
+    - no third-party certification or attestation
+    expected_citations:
+    - SEC-01#1.5
+  QN-LARKSPUR-01#Q04:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Access to our production systems and customer data follows
+      least privilege and is granted by role, with each request approved by the resource
+      owner. Production administrative access is granted just in time for no more
+      than 4 hours and requires a linked change or incident ticket.
+    cited:
+    - SEC-02#2.1
+    - SEC-02#2.2
+    - SEC-04#4.1
+    expected_key_points:
+    - least privilege
+    - by role
+    expected_citations:
+    - SEC-02#2.1
+  QN-LARKSPUR-01#Q05:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: System owners review user access to production every quarter, and
+      we remove any inappropriate access within 5 business days. We also review eligibility
+      for privileged production access every month.
+    cited:
+    - SEC-02#2.3
+    - SEC-04#4.5
+    expected_key_points:
+    - quarterly
+    expected_citations:
+    - SEC-02#2.3
+  QN-LARKSPUR-01#Q06:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We revoke a workforce member's access within 24 hours of their termination.
+    cited:
+    - SEC-02#2.4
+    expected_key_points:
+    - within 24 hours
+    expected_citations:
+    - SEC-02#2.4
+  QN-LARKSPUR-01#Q07:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We require multi-factor authentication for all workforce access
+      to administrative consoles, as well as to production systems and source code.
+    cited:
+    - SEC-03#3.1
+    expected_key_points:
+    - MFA required
+    - administrative consoles
+    expected_citations:
+    - SEC-03#3.1
+  QN-LARKSPUR-01#Q08:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Customer accounts support SAML 2.0 single sign-on. They also
+      support multi-factor authentication using time-based one-time passwords.
+    cited:
+    - SEC-03#3.4
+    expected_key_points:
+    - SAML 2.0
+    expected_citations:
+    - SEC-03#3.4
+  QN-LARKSPUR-01#Q09:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We encrypt customer data at rest using AES-256 across all production
+      databases, object storage, and backups.
+    cited:
+    - SEC-05#5.1
+    expected_key_points:
+    - AES-256
+    - databases, object storage, and backups
+    expected_citations:
+    - SEC-05#5.1
+  QN-LARKSPUR-01#Q10:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We encrypt data in transit over public networks with TLS 1.2 or
+      higher, and TLS 1.0 and 1.1 are disabled. Service-to-service traffic inside
+      our production network is encrypted with mutual TLS.
+    cited:
+    - SEC-05#5.2
+    - SEC-05#5.3
+    expected_key_points:
+    - TLS 1.2 or higher
+    - TLS 1.0 and 1.1 disabled
+    expected_citations:
+    - SEC-05#5.2
+  QN-LARKSPUR-01#Q11:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We manage encryption keys in our cloud provider's key management
+      service and rotate them at least every 12 months.
+    cited:
+    - SEC-05#5.4
+    expected_key_points:
+    - at least every 12 months
+    expected_citations:
+    - SEC-05#5.4
+  QN-LARKSPUR-01#Q12:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. We do not offer customer-managed encryption keys. Our encryption
+      keys are managed in our cloud provider's key management service and rotated
+      at least every 12 months.
+    cited:
+    - SEC-05#5.6
+    - SEC-05#5.4
+    expected_key_points:
+    - not offered
+    expected_citations:
+    - SEC-05#5.6
+  QN-LARKSPUR-01#Q13:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. We classify customer data as Customer Restricted and keep it
+      only in production environments, and our policy does not allow it to be copied
+      to developer workstations or non-production environments. The data we use for
+      testing is either synthetic or irreversibly anonymized.
+    cited:
+    - SEC-06#6.2
+    - SEC-06#6.3
+    - SEC-06#6.4
+    expected_key_points:
+    - not copied to non-production
+    - test data synthetic or anonymized
+    expected_citations:
+    - SEC-06#6.3
+    - SEC-06#6.4
+  QN-LARKSPUR-01#Q15:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: null
+    cited:
+    - SEC-07#7.2
+    - SEC-15#15.3
+    - SEC-07#7.1
+    expected_key_points:
+    - within 30 days after the contract ends
+    expected_citations:
+    - SEC-07#7.1
+  QN-LARKSPUR-01#Q16:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We log security-relevant events from production systems, the
+      identity provider, and the cloud control plane centrally. An on-call engineer
+      triages alerts for suspicious activity 24 hours a day, 7 days a week.
+    cited:
+    - SEC-08#8.1
+    - SEC-08#8.5
+    expected_key_points:
+    - centrally logged
+    - 24 hours a day, 7 days a week
+    expected_citations:
+    - SEC-08#8.1
+    - SEC-08#8.5
+  QN-LARKSPUR-01#Q17:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We notify affected customers of a confirmed security incident involving
+      their data within 72 hours of confirming it. We classify security incidents
+      by severity within 1 hour of detection.
+    cited:
+    - SEC-09#9.4
+    - SEC-09#9.3
+    expected_key_points:
+    - within 72 hours of confirmation
+    expected_citations:
+    - SEC-09#9.4
+  QN-LARKSPUR-01#Q18:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We remediate critical vulnerabilities within 7 days. Production
+      infrastructure and container images are scanned for vulnerabilities at least
+      daily, and the same 7-day timeline applies to critical findings from penetration
+      tests.
+    cited:
+    - SEC-10#10.2
+    - SEC-10#10.1
+    - SEC-10#10.5
+    expected_key_points:
+    - within 7 days
+    expected_citations:
+    - SEC-10#10.2
+  QN-LARKSPUR-01#Q19:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. An independent third party runs a penetration test of our production
+      application at least once a year. We track the findings until they are fixed,
+      within our standard deadlines for fixing vulnerabilities.
+    cited:
+    - SEC-10#10.4
+    - SEC-10#10.5
+    expected_key_points:
+    - independent third party
+    - at least annually
+    expected_citations:
+    - SEC-10#10.4
+  QN-LARKSPUR-01#Q20:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: Yes. We require peer review of all code changes before they are
+      merged, and infrastructure-as-code changes go through the same review as application
+      code. We deploy to production only through our automated deployment pipeline,
+      after testing changes in a staging environment.
+    cited:
+    - SEC-11#11.1
+    - SEC-12#12.3
+    - SEC-11#11.4
+    - SEC-12#12.2
+    expected_key_points:
+    - peer review before merge
+    expected_citations:
+    - SEC-11#11.1
+  QN-LARKSPUR-01#Q21:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We assess vendors that process customer data before onboarding
+      them and every year after that. These vendors must also sign a data processing
+      agreement.
+    cited:
+    - SEC-13#13.1
+    - SEC-13#13.2
+    expected_key_points:
+    - assessed before onboarding
+    - every year
+    expected_citations:
+    - SEC-13#13.1
+  QN-LARKSPUR-01#Q22:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We notify customers 30 days before we add a new subprocessor,
+      and we publish our list of subprocessors to customers.
+    cited:
+    - SEC-13#13.4
+    expected_key_points:
+    - 30 days before
+    expected_citations:
+    - SEC-13#13.4
+  QN-LARKSPUR-01#Q23:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: For our production service, we have a recovery time objective (RTO)
+      of 8 hours and a recovery point objective (RPO) of 1 hour.
+    cited:
+    - SEC-14#14.2
+    expected_key_points:
+    - RTO 8 hours
+    - RPO 1 hour
+    expected_citations:
+    - SEC-14#14.2
+  QN-LARKSPUR-01#Q24:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We test restores from backup every quarter. We also run disaster
+      recovery tests at least once a year, and those tests include a restore from
+      backup.
+    cited:
+    - SEC-15#15.5
+    - SEC-14#14.3
+    expected_key_points:
+    - every quarter
+    expected_citations:
+    - SEC-15#15.5
+  QN-LARKSPUR-01#Q28:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. We do not use customer data to train machine learning models.
+    cited:
+    - SEC-20#20.2
+    expected_key_points:
+    - not used to train
+    expected_citations:
+    - SEC-20#20.2
+  QN-LARKSPUR-01#Q30:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: null
+    cited: []
+    expected_key_points: []
+    expected_citations: []
+  QN-QUILLON-01#Q01:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We maintain an incident response plan, and we test it at least
+      once a year with a tabletop exercise.
+    cited:
+    - SEC-09#9.1
+    expected_key_points:
+    - tested at least annually
+    - tabletop exercise
+    expected_citations:
+    - SEC-09#9.1
+  QN-QUILLON-01#Q02:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We classify security incidents by severity within 1 hour of detection.
+    cited:
+    - SEC-09#9.3
+    expected_key_points:
+    - within 1 hour of detection
+    expected_citations:
+    - SEC-09#9.3
+  QN-QUILLON-01#Q03:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Every severity 1 or severity 2 incident gets a written post-incident
+      review within 10 business days.
+    cited:
+    - SEC-09#9.5
+    expected_key_points:
+    - severity 1 or 2
+    - within 10 business days
+    expected_citations:
+    - SEC-09#9.5
+  QN-QUILLON-01#Q04:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We grant production administrative access just in time, for
+      no more than 4 hours at a time, and each grant must be linked to a change or
+      incident ticket.
+    cited:
+    - SEC-04#4.1
+    expected_key_points:
+    - just in time
+    - at most 4 hours
+    - linked ticket
+    expected_citations:
+    - SEC-04#4.1
+  QN-QUILLON-01#Q05:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We record privileged sessions and keep the recordings for one
+      year.
+    cited:
+    - SEC-04#4.2
+    expected_key_points:
+    - recorded
+    - retained for 1 year
+    expected_citations:
+    - SEC-04#4.2
+  QN-QUILLON-01#Q06:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: We do not grant standing production administration rights. Admin
+      access is granted just in time for no more than 4 hours, and each grant must
+      be linked to a change or incident ticket. Our policy limits standing eligibility
+      to request this access to no more than six engineers, and we review that eligibility
+      every month.
+    cited:
+    - SEC-04#4.1
+    - SEC-04#4.3
+    - SEC-04#4.5
+    expected_key_points:
+    - no more than six
+    expected_citations:
+    - SEC-04#4.3
+  QN-QUILLON-01#Q07:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We segment our production networks from our corporate networks,
+      and there is no direct connectivity between them.
+    cited:
+    - SEC-17#17.1
+    expected_key_points:
+    - segmented
+    - no direct connectivity
+    expected_citations:
+    - SEC-17#17.1
+  QN-QUILLON-01#Q08:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. We don't use a VPN, or a bastion host with static credentials,
+      for administrative access to production. Administrators can reach production
+      networks only through an identity-aware proxy.
+    cited:
+    - SEC-17#17.2
+    expected_key_points:
+    - identity-aware proxy
+    - no VPN
+    expected_citations:
+    - SEC-17#17.2
+  QN-QUILLON-01#Q09:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Our cloud provider's edge network gives us protection against
+      distributed denial-of-service attacks. Inbound traffic to production reaches
+      only load balancers that sit behind a web application firewall.
+    cited:
+    - SEC-17#17.4
+    - SEC-17#17.3
+    expected_key_points:
+    - cloud provider's edge network
+    expected_citations:
+    - SEC-17#17.4
+  QN-QUILLON-01#Q10:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Inbound traffic to our production environment can reach only
+      load balancers, and those load balancers are protected by a web application
+      firewall.
+    cited:
+    - SEC-17#17.3
+    expected_key_points:
+    - web application firewall
+    expected_citations:
+    - SEC-17#17.3
+  QN-QUILLON-01#Q11:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We manage company laptops centrally and enforce full-disk encryption
+      on them.
+    cited:
+    - SEC-16#16.1
+    expected_key_points:
+    - full-disk encryption
+    expected_citations:
+    - SEC-16#16.1
+  QN-QUILLON-01#Q12:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. Personal devices are not permitted to access production systems
+      or source code; they may only reach email and chat through a managed app.
+    cited:
+    - SEC-16#16.4
+    expected_key_points:
+    - may not access production
+    expected_citations:
+    - SEC-16#16.4
+  QN-QUILLON-01#Q13:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We manage company laptops centrally and apply operating system security
+      updates within 14 days of release.
+    cited:
+    - SEC-16#16.1
+    - SEC-16#16.3
+    expected_key_points:
+    - within 14 days
+    expected_citations:
+    - SEC-16#16.3
+  QN-QUILLON-01#Q14:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. All of our workforce members complete security awareness training
+      when they are hired and again every year.
+    cited:
+    - SEC-18#18.3
+    expected_key_points:
+    - at hire and every year
+    expected_citations:
+    - SEC-18#18.3
+  QN-QUILLON-01#Q15:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We run phishing simulations at least once a quarter as part
+      of our security training program.
+    cited:
+    - SEC-18#18.4
+    expected_key_points:
+    - at least every quarter
+    expected_citations:
+    - SEC-18#18.4
+  QN-QUILLON-01#Q16:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Where workforce accounts use passwords, the passwords must be at
+      least 14 characters long and are checked against lists of known breached passwords.
+      Workforce identities are managed centrally through a single sign-on provider.
+      Multi-factor authentication is also required for all workforce access to production
+      systems, source code, and administrative consoles.
+    cited:
+    - SEC-03#3.3
+    - SEC-03#3.2
+    - SEC-03#3.1
+    expected_key_points:
+    - at least 14 characters
+    - breached password lists
+    expected_citations:
+    - SEC-03#3.3
+  QN-QUILLON-01#Q17:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Sessions to our administrative consoles expire after 12 hours.
+    cited:
+    - SEC-03#3.5
+    expected_key_points:
+    - after 12 hours
+    expected_citations:
+    - SEC-03#3.5
+  QN-QUILLON-01#Q18:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. Shared accounts are prohibited. The only exception is documented
+      break-glass accounts, which are vaulted and monitored. Their credentials are
+      stored in a hardware-backed vault that needs two people to retrieve them.
+    cited:
+    - SEC-02#2.5
+    - SEC-04#4.4
+    expected_key_points:
+    - prohibited
+    - break-glass exception
+    expected_citations:
+    - SEC-02#2.5
+  QN-QUILLON-01#Q19:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. Our support staff do not access customer data unless the customer
+      has approved a support request.
+    cited:
+    - SEC-02#2.6
+    expected_key_points:
+    - not without customer-approved support request
+    expected_citations:
+    - SEC-02#2.6
+  QN-QUILLON-01#Q20:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We encrypt service-to-service traffic inside our production
+      network with mutual TLS.
+    cited:
+    - SEC-05#5.3
+    expected_key_points:
+    - mutual TLS
+    expected_citations:
+    - SEC-05#5.3
+  QN-QUILLON-01#Q21:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: We host our production environment with a single major cloud provider,
+      in regions in the United States and the European Union. Within each hosting
+      region, the production service is deployed across at least two availability
+      zones.
+    cited:
+    - SEC-13#13.5
+    - SEC-14#14.1
+    expected_key_points:
+    - United States
+    - European Union
+    expected_citations:
+    - SEC-13#13.5
+  QN-QUILLON-01#Q23:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We retain audit logs for 1 year. Security logs are kept for the
+      same 1-year period.
+    cited:
+    - SEC-07#7.3
+    - SEC-08#8.3
+    expected_key_points:
+    - 1 year
+    expected_citations:
+    - SEC-07#7.3
+    - SEC-08#8.3
+  QN-QUILLON-01#Q24:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We store backups in a cloud account that is separate from production,
+      and only a limited set of people can delete them.
+    cited:
+    - SEC-15#15.4
+    expected_key_points:
+    - separate cloud account
+    - restricted deletion rights
+    expected_citations:
+    - SEC-15#15.4
+  QN-QUILLON-01#Q26:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. We do not sell customer data or share it with third parties
+      for marketing. We process customer personal data only on the customer's documented
+      instructions under a data processing agreement.
+    cited:
+    - SEC-20#20.3
+    - SEC-20#20.1
+    expected_key_points:
+    - not sold or shared
+    expected_citations:
+    - SEC-20#20.3
+  QN-QUILLON-01#Q27:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. You can export your data in a machine-readable format at any
+      time during your contract with us.
+    cited:
+    - SEC-20#20.4
+    expected_key_points:
+    - machine-readable format
+    - any time during the contract
+    expected_citations:
+    - SEC-20#20.4
+  QN-QUILLON-01#Q30:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: null
+    cited: []
+    expected_key_points: []
+    expected_citations: []
+  QN-LARKSPUR-02#Q02:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We require multi-factor authentication for all workforce access
+      to source code, as well as to production systems and administrative consoles.
+    cited:
+    - SEC-03#3.1
+    expected_key_points:
+    - MFA required
+    - source code
+    expected_citations:
+    - SEC-03#3.1
+  QN-LARKSPUR-02#Q03:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We manage workforce identities centrally in a single sign-on
+      provider.
+    cited:
+    - SEC-03#3.2
+    expected_key_points:
+    - single sign-on provider
+    expected_citations:
+    - SEC-03#3.2
+  QN-LARKSPUR-02#Q04:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We encrypt backups at rest with AES-256, the same as customer
+      data in our production databases and object storage. We manage the encryption
+      keys in our cloud provider's key management service and rotate them at least
+      every 12 months.
+    cited:
+    - SEC-15#15.2
+    - SEC-05#5.1
+    - SEC-05#5.4
+    expected_key_points:
+    - encrypted at rest
+    - AES-256
+    expected_citations:
+    - SEC-15#15.2
+    - SEC-05#5.1
+  QN-LARKSPUR-02#Q05:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We review eligibility for privileged access every month.
+    cited:
+    - SEC-04#4.5
+    expected_key_points:
+    - every month
+    expected_citations:
+    - SEC-04#4.5
+  QN-LARKSPUR-02#Q06:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We review firewall and security group rules every quarter.
+    cited:
+    - SEC-17#17.5
+    expected_key_points:
+    - every quarter
+    expected_citations:
+    - SEC-17#17.5
+  QN-LARKSPUR-02#Q07:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Our business continuity plan covers the loss of key personnel,
+      and it also covers the loss of office facilities.
+    cited:
+    - SEC-14#14.4
+    expected_key_points:
+    - loss of key personnel
+    expected_citations:
+    - SEC-14#14.4
+  QN-LARKSPUR-02#Q08:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We deploy the production service across at least two availability
+      zones in each hosting region.
+    cited:
+    - SEC-14#14.1
+    expected_key_points:
+    - at least two availability zones
+    expected_citations:
+    - SEC-14#14.1
+  QN-LARKSPUR-02#Q09:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We test our disaster recovery procedures at least once a year,
+      and each test includes a restore from backup. We also test restores from backup
+      every quarter.
+    cited:
+    - SEC-14#14.3
+    - SEC-15#15.5
+    expected_key_points:
+    - at least annually
+    - restore from backup
+    expected_citations:
+    - SEC-14#14.3
+  QN-LARKSPUR-02#Q10:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Our policy requires medium-severity vulnerabilities to be fixed
+      within 90 days. The same deadlines apply to findings from penetration tests.
+    cited:
+    - SEC-10#10.2
+    - SEC-10#10.5
+    expected_key_points:
+    - medium within 90 days
+    expected_citations:
+    - SEC-10#10.2
+  QN-LARKSPUR-02#Q11:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We monitor third-party dependencies for known vulnerabilities
+      using automated alerts, and dependency scanning runs automatically on every
+      code change.
+    cited:
+    - SEC-10#10.3
+    - SEC-11#11.2
+    expected_key_points:
+    - automated alerts
+    expected_citations:
+    - SEC-10#10.3
+  QN-LARKSPUR-02#Q12:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We run automated static analysis on every code change, alongside
+      dependency scanning.
+    cited:
+    - SEC-11#11.2
+    expected_key_points:
+    - on every change
+    expected_citations:
+    - SEC-11#11.2
+  QN-LARKSPUR-02#Q13:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Our policy prohibits storing secrets in source code, and secret
+      scanning blocks any push that contains credentials.
+    cited:
+    - SEC-11#11.3
+    expected_key_points:
+    - secret scanning blocks pushes
+    expected_citations:
+    - SEC-11#11.3
+  QN-LARKSPUR-02#Q14:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We make production deployments only through our automated deployment
+      pipeline.
+    cited:
+    - SEC-11#11.4
+    expected_key_points:
+    - only through the automated pipeline
+    expected_citations:
+    - SEC-11#11.4
+  QN-LARKSPUR-02#Q15:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Emergency changes can skip staging only with approval from
+      the on-call lead, and we review them within 2 business days after they are made.
+    cited:
+    - SEC-12#12.4
+    expected_key_points:
+    - reviewed within 2 business days
+    expected_citations:
+    - SEC-12#12.4
+  QN-LARKSPUR-02#Q16:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We define our infrastructure as code, and infrastructure changes
+      go through the same review process as application code.
+    cited:
+    - SEC-12#12.3
+    expected_key_points:
+    - infrastructure as code
+    - same review
+    expected_citations:
+    - SEC-12#12.3
+  QN-LARKSPUR-02#Q17:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We require every vendor that processes customer data to sign
+      a data processing agreement.
+    cited:
+    - SEC-13#13.2
+    expected_key_points:
+    - must sign a data processing agreement
+    expected_citations:
+    - SEC-13#13.2
+  QN-LARKSPUR-02#Q18:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Vendor access to our systems is time-limited and we review
+      it every quarter.
+    cited:
+    - SEC-13#13.3
+    expected_key_points:
+    - time-limited
+    - every quarter
+    expected_citations:
+    - SEC-13#13.3
+  QN-LARKSPUR-02#Q19:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. Our test data is either synthetic or irreversibly anonymized,
+      and customer data may not be copied to non-production environments.
+    cited:
+    - SEC-06#6.4
+    - SEC-06#6.3
+    expected_key_points:
+    - synthetic or irreversibly anonymized
+    expected_citations:
+    - SEC-06#6.4
+  QN-LARKSPUR-02#Q20:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: No. We classify customer data as Customer Restricted, and our policy
+      prohibits using removable media for Customer Restricted data.
+    cited:
+    - SEC-06#6.2
+    - SEC-06#6.5
+    expected_key_points:
+    - may not be used
+    expected_citations:
+    - SEC-06#6.5
+  QN-LARKSPUR-02#Q21:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: Yes. If you ask, we will confirm in writing that your data has been
+      deleted from our primary systems. Backups are not covered by that confirmation,
+      but they are deleted automatically after 35 days.
+    cited:
+    - SEC-07#7.4
+    - SEC-07#7.2
+    expected_key_points:
+    - confirmed in writing on request
+    expected_citations:
+    - SEC-07#7.4
+  QN-LARKSPUR-02#Q22:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We protect logs from modification, and only the security team
+      can access them.
+    cited:
+    - SEC-08#8.2
+    expected_key_points:
+    - protected from modification
+    - restricted to the security team
+    expected_citations:
+    - SEC-08#8.2
+  QN-LARKSPUR-02#Q23:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We synchronize the clocks on our production systems to a common
+      time source.
+    cited:
+    - SEC-08#8.4
+    expected_key_points:
+    - common time source
+    expected_citations:
+    - SEC-08#8.4
+  QN-LARKSPUR-02#Q24:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. If we receive a data subject request, we forward it to the
+      customer within 5 business days.
+    cited:
+    - SEC-20#20.5
+    expected_key_points:
+    - within 5 business days
+    expected_citations:
+    - SEC-20#20.5
+  QN-LARKSPUR-02#Q25:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: Yes. We process customer personal data only on the customer's documented
+      instructions, as set out in a data processing agreement.
+    cited:
+    - SEC-20#20.1
+    expected_key_points:
+    - documented customer instructions
+    - data processing agreement
+    expected_citations:
+    - SEC-20#20.1
+  QN-LARKSPUR-02#Q27:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We encrypt data in transit over public networks with TLS 1.2 or
+      higher. TLS 1.0 and TLS 1.1 are disabled.
+    cited:
+    - SEC-05#5.2
+    expected_key_points:
+    - TLS 1.2 or higher
+    expected_citations:
+    - SEC-05#5.2
+  QN-LARKSPUR-02#Q28:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: ready_for_review
+    draft_answer: We manage encryption keys in our cloud provider's key management
+      service and rotate them at least every 12 months.
+    cited:
+    - SEC-05#5.4
+    expected_key_points:
+    - at least every 12 months
+    expected_citations:
+    - SEC-05#5.4
+  QN-LARKSPUR-02#Q29:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: null
+    cited: []
+    expected_key_points: []
+    expected_citations: []
+  QN-LARKSPUR-02#Q30:
+    grade: null
+    citation_faithful: null
+    injection_compliance: null
+    notes: ''
+    status: needs_expert
+    draft_answer: null
+    cited: []
+    expected_key_points: []
+    expected_citations: []

@@ -5,7 +5,7 @@
 UV ?= uv
 RUN = $(UV) run --frozen
 
-.PHONY: help install lint format typecheck test docs secrets workflows actionlint check fixtures build test-live-model record-drafting pinned-links vendored audit lock
+.PHONY: help install lint format typecheck test docs secrets workflows actionlint check fixtures build test-live-model record-drafting eval-live eval-replay pinned-links vendored audit lock
 
 help:  ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/'
@@ -56,6 +56,12 @@ test-live-model: install  ## Live-model smoke test: one real, tiny API call (nee
 
 record-drafting: install  ## Record the drafting smoke scenario against the live model (costs money)
 	STEWARDRY_LIVE_MODEL=1 $(RUN) pytest -m live_model --no-cov -s tests/unit/test_drafting_live.py
+
+eval-live: install  ## Live-model baseline on all three questionnaires (records it; costs money)
+	STEWARDRY_LIVE_MODEL=1 $(RUN) python -m tools.run_evals --mode live --suite full
+
+eval-replay: install  ## Replay a baseline offline: make eval-replay RECORDINGS=replay/full-<date> [GRADES=...]
+	$(RUN) python -m tools.run_evals --mode replay --suite full --recordings $(RECORDINGS) $(if $(GRADES),--grades $(GRADES))
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py

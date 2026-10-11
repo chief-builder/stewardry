@@ -402,3 +402,69 @@ def test_drafting_is_not_complete_while_another_worker_holds_a_question(setup: S
         assert conn.execute(select(runs.c.status).where(runs.c.run_id == run.run_id)).scalar() == (
             "running"
         )
+
+
+# ------------------------------------------------------------ conflicts across tasks
+
+
+def test_a_conflict_recorded_in_one_task_blocks_answers_in_another(
+    world: Engine, log: AuditLog, tmp_path: Path
+) -> None:
+    """The live baseline of 2026-10-11 found this: QN-LARKSPUR-02 Q21 cited SEC-07 7.2
+    (backups kept 35 days) and reached review, although another task had already
+    routed the SEC-07 7.2 / SEC-15 15.3 conflict."""
+    from stewardry.platform.db.schema import evidence_conflicts
+
+    data = QUESTIONNAIRE.read_bytes()
+    first = make_setup(world, log, tmp_path / "a", QUESTIONNAIRE.name, data, submission_key="a")
+    explanation = "Larkspur asked about this; their contract says 60 days."
+    conflict_route: Turn = [
+        (
+            "route_to_expert",
+            {
+                "reason": "conflict",
+                "explanation": explanation,
+                "passages": [
+                    {"policy_id": "SEC-07", "passage": "7.2"},
+                    {"policy_id": "SEC-15", "passage": "15.3"},
+                ],
+            },
+        )
+    ]
+    first.drafting(ScriptedModel({"Q14": [read("SEC-07", "SEC-15"), conflict_route]})).run(
+        first.start()
+    )
+    second = make_setup(world, log, tmp_path / "b", QUESTIONNAIRE.name, data, submission_key="b")
+    plans: dict[str, list[Turn]] = {
+        "Q14": [read("SEC-07", "SEC-15"), conflict_route],  # the same conflict again
+        "Q21": [read("SEC-07"), submit("Backups go after 35 days.", "direct", ("SEC-07", "7.2"))],
+    }
+    second.drafting(ScriptedModel(plans)).run(second.start())
+
+    with world.connect() as conn:
+        (row,) = conn.execute(select(evidence_conflicts)).all()  # recorded once
+        q21 = conn.execute(
+            select(question_drafts).where(
+                question_drafts.c.task_id == second.task_id,
+                question_drafts.c.question_id == "Q21",
+            )
+        ).one()
+    assert row.task_id == first.task_id
+    assert row.note == "recorded conflict between SEC-07 7.2 and SEC-15 15.3"
+    assert (q21.status, q21.expert_reason) == ("needs_expert", "conflict")
+    reasons = json.loads(q21.reasons_json)
+    assert any("SEC-07 7.2 and SEC-15 15.3" in r for r in reasons)
+    assert not any("Larkspur" in r or "60 days" in r for r in reasons)  # no customer text
+    assert len(events(world, "evidence.conflict_recorded")) == 1
+
+
+def test_a_conflict_needs_two_passages_the_run_actually_read(setup: Setup) -> None:
+    from stewardry.platform.db.schema import evidence_conflicts
+
+    plans: dict[str, list[Turn]] = {
+        "Q14": [read("SEC-07"), route("conflict", ("SEC-07", "7.2"), ("SEC-15", "15.3"))],
+        "Q15": [read("SEC-07"), route("conflict", ("SEC-07", "7.2"), ("SEC-07", "7.99"))],
+    }
+    setup.drafting(ScriptedModel(plans)).run(setup.start())
+    with setup.world.connect() as conn:
+        assert conn.execute(select(evidence_conflicts)).all() == []

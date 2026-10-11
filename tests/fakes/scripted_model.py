@@ -12,6 +12,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from stewardry.platform.model import TransportKind
+
 Turn = list[tuple[str, dict[str, Any]]] | Literal["refuse", "text"]
 DEFAULT: list[Turn] = [
     [("route_to_expert", {"reason": "missing", "explanation": "not covered", "passages": []})]
@@ -26,7 +28,7 @@ class Crash(BaseException):
 class ScriptedModel:
     plans: dict[str, list[Turn]]
     crash_on_call: int | None = None
-    kind: Literal["scripted"] = "scripted"
+    kind: TransportKind = "scripted"
     payloads: list[dict[str, Any]] = field(default_factory=list)
 
     def send(self, payload: Mapping[str, Any], request_hash: str) -> dict[str, Any]:

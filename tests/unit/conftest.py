@@ -69,10 +69,14 @@ def log() -> AuditLog:
     return AuditLog(Redactor())
 
 
-def populate(engine: Engine, log: AuditLog) -> None:
+def populate(engine: Engine, log: AuditLog, mapping: dict[str, Any] | None = None) -> None:
     """People applied by bootstrap; the questionnaire agent registered and in build."""
     apply_access_mapping(
-        engine, log, PLATFORM, AccessMapping.model_validate(mapping_data()), bootstrap=True
+        engine,
+        log,
+        PLATFORM,
+        AccessMapping.model_validate(mapping or mapping_data()),
+        bootstrap=True,
     )
     registry.apply_policy(
         engine,
