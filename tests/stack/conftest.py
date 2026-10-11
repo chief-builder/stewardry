@@ -6,6 +6,7 @@ realm file read-only from the pinned checkout, and gets a random admin
 password generated for this container only. It is removed afterwards.
 """
 
+import json
 import os
 import re
 import secrets
@@ -123,30 +124,23 @@ BROKER_URL = "http://localhost:8600"
 MOCK_MCP = "http://localhost:8330"
 
 
-def _compose(password: str, *args: str) -> subprocess.CompletedProcess[str]:
+UPSTREAMS = ROOT / "deploy/stack/stewardry-upstreams.stand-in.json"
+
+
+def _compose(
+    password: str, *args: str, profiles: tuple[str, ...] = ("gateway",), **extra: str
+) -> subprocess.CompletedProcess[str]:
     """docker compose with the pinned broker file, Stewardry's override, no .env,
     and a clean environment (no vendor credentials from the caller's shell)."""
     env = {k: v for k, v in os.environ.items() if k in ("PATH", "HOME", "DOCKER_HOST", "TMPDIR")}
     env["STEWARDRY_STACK_KC_ADMIN_PASSWORD"] = password
+    env["STEWARDRY_UPSTREAMS_FILE"] = str(UPSTREAMS)
+    env.update(extra)
+    flags = [arg for profile in profiles for arg in ("--profile", profile)]
+    command = ["docker", "compose", "--env-file", "/dev/null"]
+    command += ["-f", str(BROKER_COMPOSE), "-f", str(OVERRIDE), *flags, *args]
     return subprocess.run(  # noqa: S603 - fixed compose arguments
-        [  # noqa: S607 - docker from PATH, as in the broker's own tests
-            "docker",
-            "compose",
-            "--env-file",
-            "/dev/null",
-            "-f",
-            str(BROKER_COMPOSE),
-            "-f",
-            str(OVERRIDE),
-            "--profile",
-            "gateway",
-            *args,
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-        env=env,
-        cwd=BROKER_COMPOSE.parent,
+        command, capture_output=True, text=True, check=False, env=env, cwd=BROKER_COMPOSE.parent
     )
 
 
@@ -176,4 +170,32 @@ def broker_stack() -> Iterator[BrokerStack]:
             pytest.fail("the stand-in stack did not start:\n" + up.stderr[-2000:])
         yield BrokerStack(password)
     finally:
-        _compose(password, "down", "--remove-orphans")
+        _compose(password, "down", "--remove-orphans", profiles=("gateway", "stewardry"))
+
+
+# ------------------------------------- Stewardry's client and personas on it
+
+
+@dataclass(frozen=True)
+class StandIn:
+    """The stand-in stack after `stewardry hub bootstrap --with-stewardry-gateway`."""
+
+    stack: BrokerStack
+    subjects: dict[str, str]
+    passwords: dict[str, str]
+    entries: dict[str, str]  # the bootstrap's secrets file (test values only)
+
+
+@pytest.fixture(scope="session")
+def stand_in(broker_stack: BrokerStack, tmp_path_factory: pytest.TempPathFactory) -> StandIn:
+    from stewardry.platform import hub_bootstrap as hb
+
+    additions = json.loads((ROOT / "deploy/hub/stewardry-realm-additions.json").read_text())
+    secrets_file = tmp_path_factory.mktemp("bootstrap") / ".secrets.env"
+    with httpx2.Client(timeout=30) as http:
+        admin = hb.KeycloakAdmin("http://localhost:8180", "mcp", http)
+        admin.login(HUB_ISSUER, "admin", broker_stack.admin_password)
+        result = hb.bootstrap(admin, HUB_ISSUER, additions, secrets_file, include_gateway=True)
+    entries = hb.read_secrets(secrets_file)
+    passwords = {u: entries[hb.persona_entry(u)] for u in result.created_users}
+    return StandIn(broker_stack, result.subjects, passwords, entries)

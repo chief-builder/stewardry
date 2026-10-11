@@ -61,7 +61,7 @@ from tests.stack.conftest import (
     HUB_ISSUER,
     MOCK_MCP,
     ROOT,
-    BrokerStack,
+    StandIn,
     _docker,
 )
 
@@ -72,7 +72,6 @@ APP = "http://localhost:8700"
 CONSENT_PREFIX = f"{BROKER_URL}/v1/authorize/mockhub-atlassian?txn="
 STAND_IN_CLOUD_ID = "00000000-0000-4000-8000-00000000a71a"  # mock-mcp's fixed site
 USER_INFO = "atlassian_atlassianUserInfo"
-ADDITIONS = json.loads((ROOT / "deploy/hub/stewardry-realm-additions.json").read_text())
 LOG_RECORDS: list[str] = []
 
 
@@ -135,23 +134,18 @@ def _sign_in(app: TestClient, username: str, password: str) -> None:
 
 
 @pytest.fixture(scope="module")
-def stack(broker_stack: BrokerStack, tmp_path_factory: pytest.TempPathFactory) -> Iterator[Stack]:
+def stack(stand_in: StandIn, tmp_path_factory: pytest.TempPathFactory) -> Iterator[Stack]:
     handler = _Capture()
     logging.getLogger().addHandler(handler)
     previous = logging.getLogger().level
     logging.getLogger().setLevel(logging.DEBUG)
     tmp = tmp_path_factory.mktemp("gateway")
-    with httpx2.Client(timeout=30) as http:
-        admin = hb.KeycloakAdmin("http://localhost:8180", "mcp", http)
-        admin.login(HUB_ISSUER, "admin", broker_stack.admin_password)
-        result = hb.bootstrap(admin, HUB_ISSUER, ADDITIONS, tmp / ".secrets.env")
-    entries = hb.read_secrets(tmp / ".secrets.env")
-    passwords = {u: entries[hb.persona_entry(u)] for u in result.created_users}
+    entries, passwords = stand_in.entries, stand_in.passwords
 
     engine = make_engine(tmp / "db.sqlite")
     migrate.upgrade(engine)
     log = AuditLog()
-    subjects = result.subjects
+    subjects = stand_in.subjects
     apply_access_mapping(engine, log, subjects["platform"], _mapping(subjects), bootstrap=True)
     registry.apply_policy(
         engine,

@@ -13,3 +13,43 @@ services:
     environment:
       # Short enough to test the consent timeout without a long wait.
       CONSENT_WAIT_S: "6"
+
+  # S14c design check (ADR 0009, option 2): a Stewardry-only gateway from the
+  # same pinned image, with only the five reviewed Atlassian tools, its own
+  # audience scope, and its own token-exchange client. Opt-in profile; the
+  # stack tests start it after `stewardry hub bootstrap --with-stewardry-gateway`
+  # has created its client. Stack tier only in Milestone 1.
+  stewardry-gateway:
+    profiles: ["stewardry"]
+    build:
+      context: ../..
+      dockerfile: Dockerfile.gateway
+    container_name: stewardry-gateway
+    environment:
+      GATEWAY_PUBLIC_URL: http://localhost:8510
+      HUB_ISSUER: http://localhost:8180/realms/mcp
+      HUB_JWKS_URI: http://keycloak:8180/realms/mcp/protocol/openid-connect/certs
+      HUB_TOKEN_ENDPOINT: http://keycloak:8180/realms/mcp/protocol/openid-connect/token
+      GATEWAY_CLIENT_ID: stewardry-gateway
+      GATEWAY_CLIENT_SECRET: ${STEWARDRY_GATEWAY_CLIENT_SECRET:-unset-until-bootstrap}
+      GATEWAY_SCOPE: stewardry-gateway
+      BROKER_URL: http://broker-kc:8300
+      GATEWAY_UPSTREAMS: /config/stewardry-upstreams.json
+      CONSENT_WAIT_S: "6"
+      HTTP_TIMEOUT_S: "5"
+    volumes:
+      - ${STEWARDRY_UPSTREAMS_FILE:-/dev/null}:/config/stewardry-upstreams.json:ro
+    ports:
+      - "127.0.0.1:8510:8500"
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8500/.well-known/oauth-protected-resource/mcp').status==200 else 1)"]
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 6
+    depends_on:
+      broker-kc:
+        condition: service_healthy
+      mock-mcp:
+        condition: service_started
