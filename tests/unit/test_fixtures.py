@@ -20,6 +20,7 @@ from stewardry.platform.access import load_access_mapping
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / "fixtures"
 EVALS = ROOT / "evals"
+TEMPLATES = ROOT / "src/stewardry/engagements/questionnaire/templates"
 DATASET = yaml.safe_load((EVALS / "datasets" / "questionnaire-v1.yaml").read_text())
 AS_OF = dt.date.fromisoformat(DATASET["as_of"])
 PASSAGE = re.compile(r"^(\d+)\.(\d+) (.+)$")
@@ -132,7 +133,7 @@ def test_questionnaires_and_jira_requests_line_up() -> None:
     for data in QUESTIONNAIRES.values():
         assert [q["id"] for q in data["questions"]] == [f"Q{i:02d}" for i in range(1, 31)]
         assert data["customer_id"] in customers
-        assert (FIXTURES / "templates" / f"{data['template']}.yaml").exists()
+        assert (TEMPLATES / f"{data['template']}.yaml").exists()
         issue = json.loads((FIXTURES / "jira" / f"{data['jira_issue_key']}.json").read_text())
         assert issue["fields"]["customfield_10042"] == data["customer_id"]
 
@@ -275,7 +276,6 @@ SYNTHETIC_CONTENT = [
     "fixtures/policies",
     "fixtures/questionnaires",
     "fixtures/jira",
-    "fixtures/templates",
     "policies/catalogs",
     "evals/datasets",
 ]

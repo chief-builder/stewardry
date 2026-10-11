@@ -1,6 +1,6 @@
 """Build the synthetic questionnaire files from their YAML sources.
 
-fixtures/questionnaires/<id>.yaml + fixtures/templates/<template>.yaml
+fixtures/questionnaires/<id>.yaml + the package's template definitions
   -> fixtures/questionnaires/<id>.xlsx or .docx
 
 Adversarial content from each file's `hidden:` list is placed where the
@@ -24,7 +24,7 @@ from openpyxl.styles import Font, PatternFill
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "fixtures" / "questionnaires"
-TEMPLATES = ROOT / "fixtures" / "templates"
+TEMPLATES = ROOT / "src" / "stewardry" / "engagements" / "questionnaire" / "templates"
 FIXED_TIME = dt.datetime(2026, 10, 1, 9, 0, 0)  # stable document metadata
 AUTHOR = "Synthetic customer reviewer"
 
