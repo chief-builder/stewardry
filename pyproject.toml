@@ -13,7 +13,9 @@ dependencies = [
     "httpx2>=2.13,<3",
     "jinja2>=3.1,<4",
     "joserfc>=1.7,<2",
+    "openpyxl>=3.1,<4",
     "pydantic>=2.13,<3",
+    "python-docx>=1.2,<2",
     "python-multipart>=0.0.32,<0.1",
     "pyyaml>=6.0,<7",
     "sqlalchemy>=2.1,<2.2",
@@ -30,6 +32,7 @@ dev = [
     "pytest==9.1.1",
     "pytest-cov==7.1.0",
     "ruff==0.16.9",
+    "types-openpyxl>=3.1.5.20260827",
     "types-pyyaml==6.0.12.20260906",
     "zizmor==1.30.1",
 ]
