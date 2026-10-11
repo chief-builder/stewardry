@@ -30,6 +30,7 @@ policy:
     confluence.list_pages:
       stage: drafting
       spaces: [SECPOL]
+      catalog: policies/catalogs/secpol.yaml   # listing returns catalog pages only
     confluence.read_page:
       stage: drafting
       catalog: policies/catalogs/secpol.yaml   # page catalog arrives with S8 and S10
