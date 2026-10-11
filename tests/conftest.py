@@ -22,7 +22,12 @@ def _blocked(*args: Any, **kwargs: Any) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _block_network(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+def _block_network(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[None]:
+    if request.node.get_closest_marker("live_model"):
+        yield  # the live-model tier needs the network; it only runs when asked for
+        return
     monkeypatch.setattr(socket.socket, "connect", _blocked)
     monkeypatch.setattr(socket.socket, "connect_ex", _blocked)
     monkeypatch.setattr(socket, "create_connection", _blocked)

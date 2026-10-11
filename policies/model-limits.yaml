@@ -1,0 +1,9 @@
+# Platform-wide model access limits (spec sections 4.4 and 4.6).
+# PLACEHOLDER values: the daily spend ceiling is not yet agreed
+# (docs/plan/open-questions.md, Q9). Set it before any connected session.
+schema_version: 1
+max_tokens: 16000          # per call; non-streaming requests stay under SDK timeouts
+timeout_seconds: 120       # per attempt
+max_attempts: 3            # first try plus two retries, for 429, 5xx, and network errors
+backoff_seconds: [2, 8]    # wait before attempt 2 and attempt 3
+daily_usd: "10.00"         # PLACEHOLDER: all model calls on this installation, per UTC day
