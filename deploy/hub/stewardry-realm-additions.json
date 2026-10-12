@@ -86,5 +86,56 @@
       "firstName": "Sales",
       "lastName": "Persona Two"
     }
-  ]
+  ],
+  "stewardry_gateway": {
+    "note": "Only with `--with-stewardry-gateway` (stack tier; the Milestone 2 decision gate, S14c). A second gateway instance for Stewardry alone: its own audience scope and token-exchange client. Not for the real hub in Milestone 1.",
+    "scope": {
+      "name": "stewardry-gateway",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "stewardry-gateway-resource-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "http://localhost:8510/mcp",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "stewardry-gateway-client-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "stewardry-gateway",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    },
+    "exchange_client": {
+      "clientId": "stewardry-gateway",
+      "name": "Stewardry-only gateway (token exchange)",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "attributes": {
+        "standard.token.exchange.enabled": "true"
+      },
+      "defaultClientScopes": [
+        "basic"
+      ],
+      "optionalClientScopes": [
+        "hub-tier"
+      ]
+    }
+  }
 }

@@ -1,0 +1,18 @@
+{
+  "upstreams": [
+    {
+      "name": "atlassian",
+      "display_name": "Atlassian",
+      "vendor": "mockhub-atlassian",
+      "url": "http://mock-mcp:8330/atlassian/mcp",
+      "tools": [
+        "getJiraIssue",
+        "searchConfluence",
+        "getConfluenceContent",
+        "atlassianUserInfo",
+        "getAccessibleAtlassianResources"
+      ],
+      "snapshot": "atlassian.json"
+    }
+  ]
+}

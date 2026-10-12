@@ -82,6 +82,9 @@ class FakeKeycloak:
             body = json.loads(request.content)
             self.clients.append(body | {"id": uuid.uuid4().hex})
             return httpx2.Response(201)
+        if path == "/admin/realms/mcp/client-scopes" and request.method == "POST":
+            self.scopes.append(json.loads(request.content) | {"id": uuid.uuid4().hex})
+            return httpx2.Response(201)
         if path == "/admin/realms/mcp/client-scopes":
             return httpx2.Response(200, json=self.scopes)
         if path == "/admin/realms/mcp/users":

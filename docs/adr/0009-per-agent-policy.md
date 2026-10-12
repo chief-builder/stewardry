@@ -121,3 +121,13 @@ is testable offline.
   added by the bootstrap, and a client for the second gateway's token
   exchange. Its design is verified in the stack tier before it is proposed
   for connected use.
+
+*Implementation note (S14c, 2026-10-12):* option 2 was checked in the stack
+tier (Milestone 1 step S14c). The second gateway listed only the five
+reviewed tools, with schemas from the bundled snapshot. It refused
+`executeRead`, `discover`, and Jira search without reaching the upstream.
+Token exchange worked for its own audience, and tokens did not cross
+between the two gateways. The findings and the recommendation (go for
+Milestone 2, after one verification on the real stack) are in
+[s14c-stewardry-gateway.md](../plan/s14c-stewardry-gateway.md). Option 1
+stays in force for Milestone 1.

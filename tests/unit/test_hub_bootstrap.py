@@ -227,3 +227,34 @@ def test_the_command_refuses_a_remote_hub(
     monkeypatch.setenv("KEYCLOAK_ADMIN_PASSWORD", ADMIN_PASSWORD)
     assert main(["hub", "bootstrap"]) == 1
     assert "local hub" in capsys.readouterr().err
+
+
+# ------------------------------------------------- Stewardry-only gateway (S14c)
+
+
+def test_the_stewardry_gateway_parts_are_added_only_when_asked(tmp_path: Path) -> None:
+    plain = FakeKeycloak()
+    run(plain, tmp_path / "a.env")
+    assert not any(c["clientId"] == "stewardry-gateway" for c in plain.clients)
+    assert not any(s["name"] == "stewardry-gateway" for s in plain.scopes)
+
+    fake = FakeKeycloak()
+    result = run(fake, tmp_path / "b.env", include_gateway=True)
+    assert (result.gateway_scope, result.gateway_client) == ("created", "created")
+    scope = next(s for s in fake.scopes if s["name"] == "stewardry-gateway")
+    audiences = {m["config"].get("included.custom.audience") for m in scope["protocolMappers"]}
+    assert "http://localhost:8510/mcp" in audiences
+    exchange = next(c for c in fake.clients if c["clientId"] == "stewardry-gateway")
+    assert exchange["attributes"] == {"standard.token.exchange.enabled": "true"}
+    assert exchange["standardFlowEnabled"] is False and exchange["optionalClientScopes"] == [
+        "hub-tier"
+    ]
+    app = next(c for c in fake.clients if c["clientId"] == "stewardry")
+    assert app["optionalClientScopes"] == ["mcp-gateway", "stewardry-gateway"]
+    assert hb.GATEWAY_CLIENT_ENTRY in hb.read_secrets(tmp_path / "b.env")
+    assert result.broker_config_unchanged
+
+    writes = len(fake.writes())
+    again = run(fake, tmp_path / "b.env", include_gateway=True)
+    assert len(fake.writes()) == writes
+    assert (again.gateway_scope, again.gateway_client) == ("existed", "existed")
