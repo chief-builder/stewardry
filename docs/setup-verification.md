@@ -61,14 +61,14 @@ Planning did not read them, and nothing here touches them.
 
 | Check | Where | Record |
 |---|---|---|
-| Site URL (`https://<name>.atlassian.net`) | Atlassian Administration → Products | |
+| Site URL (`https://<name>.atlassian.net`) | Atlassian Administration → Products | https://muralisworkspace-e4e288d5.atlassian.net/|
 | `cloudId` | From step 6 below (`getAccessibleAtlassianResources`) | |
-| Confluence plan | Administration → Billing | Free / Standard / Premium / Enterprise |
-| Jira plan | Administration → Billing | |
-| Rovo MCP server enabled for the site | Administration → Rovo → Rovo MCP server | yes / no |
-| Allowed callback domains include `http://localhost:*` | Same page → Domain settings (view only) | yes / no |
+| Confluence plan | Administration → Billing | Free |
+| Jira plan | Administration → Billing | Free |
+| Rovo MCP server enabled for the site | Administration → Rovo → Rovo MCP server | yes |
+| Allowed callback domains include `http://localhost:*` | Same page → Domain settings (view only) | yes |
 | Rovo MCP availability and usage limits on your plan | Same page and Atlassian docs | note any limit |
-| Broker app appears under connected or authorized apps (registered as `vtb-mcp-gateway`) | Administration → Apps or connected apps (view only) | yes / no |
+| Broker app is known to Atlassian (registered as `vtb-mcp-gateway`) | Atlassian's admin pages may not list MCP clients registered dynamically. After the first user consents, it appears in **that user's** account: id.atlassian.com → Manage account → Connected apps. With Atlassian Guard, the org audit log also shows MCP authorizations. The authoritative check is section 3's end-to-end consent | yes / no / not listed |
 | Users currently licensed for Confluence and Jira | Administration → Users | count, and names of test users |
 
 ### Which Confluence plan supports page restrictions (spec 4.3.1)
