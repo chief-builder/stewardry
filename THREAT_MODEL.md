@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, step S14c (Stewardry-only gateway design check), 2026-10-12. Each milestone
+Status: updated for Milestone 1, S15 preparation (connected harness, Connect page), 2026-10-12. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries

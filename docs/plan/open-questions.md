@@ -11,6 +11,9 @@
 | G6, credential lifetime | Memory only; drafting pauses when credentials lapse |
 | Confluence plan | You are willing to move to Standard if needed |
 | GitHub repository | Create `chief-builder/stewardry` |
+| Q4, restriction design (2026-10-12) | Page restrictions only: Sales sees the policy space; SEC-04, SEC-09, and SEC-17 are restricted to GRC |
+| Q5, Atlassian users (2026-10-12) | None exist yet. The owner creates Sales, GRC, Legal, and an expert author, none of them the site admin |
+| Publishing the synthetic pages (2026-10-12) | Stewardry renders them (`make confluence-pages`); the owner pastes them into Confluence. Stewardry never writes to Atlassian |
 
 ## Still open
 
@@ -32,13 +35,9 @@ Q12, which S8 needs.
 
 ### Atlassian setup
 
-4. **Restriction design.** Should Sales be excluded from the whole policy
-   space by space permissions, with page restrictions on confidential
-   pages? Or should only page restrictions be used? Page-only is closer to
-   the spec's wording. Space plus page is easier to keep correct.
-5. **Atlassian users.** Do Sales, GRC, Legal, and an expert-author account
-   already exist on the site? Which existing account is the site admin, so
-   that it is never connected to Stewardry?
+4. *Resolved 2026-10-12 (see above).*
+5. *Resolved 2026-10-12 (see above).* Still to note: which account is the
+   site admin, so that it is never connected to Stewardry.
 6. **Registration age.** Did the Atlassian registration report a
    client-secret expiry date?
 

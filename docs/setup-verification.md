@@ -37,6 +37,24 @@ names, IDs, plan names, and yes/no answers only, never secret values.
 Note: the checkout has untracked local files (`fix_plan.md`, `review*.md`).
 Planning did not read them, and nothing here touches them.
 
+**Recorded 2026-10-12 (names and counts only):**
+
+- **Checkout:** at `20d1426…` with no tracked changes.
+- **`.env`:** present. It sets `ATLASSIAN_CLIENT_ID` and
+  `ATLASSIAN_CLIENT_SECRET` (both non-empty, by count), plus GitHub, Linear,
+  and Cloudflare variables.
+- **It does not set `GATEWAY_UPSTREAMS`.** The broker's compose file then
+  uses the **stand-in** upstreams, so a plain `make stack-up` talks to the
+  stand-in Atlassian, not the real one. For connected work, start the stack
+  with the real upstreams, and only Atlassian. A longer consent wait leaves
+  time for a person in a browser:
+
+  ```bash
+  GATEWAY_UPSTREAMS= GATEWAY_ENABLED_UPSTREAMS=atlassian GATEWAY_CONSENT_WAIT_S=120 make stack-up
+  ```
+
+  Section 5's last row then shows a real `cloudId`.
+
 ## 2. Atlassian site and plans
 
 | Check | Where | Record |
@@ -155,18 +173,40 @@ supply the Keycloak admin credential as `KEYCLOAK_ADMIN_USER` and
 
 ## 7. Synthetic content and restrictions (create)
 
-1. Create a Jira project for synthetic requests (for example key `SQR`). Sales
-   gets browse permission.
-2. Create a Confluence space for security policies (for example `SECPOL`)
-   and one for the legal playbook (for example `LEGALPB`). Use plain page
-   content, with no macros in policy bodies.
-3. Give GRC view access to `SECPOL` and Legal view access to `LEGALPB`.
-   Do not give Sales either space, or restrict the confidential pages to the
-   GRC user or group (see the open question on space versus page
-   restrictions).
-4. Add one test page with a view restriction for GRC only. In the Confluence
-   UI, signed in as the Sales Atlassian user, confirm it cannot be opened.
-   Record the date. The same check through the gateway happens in step S15.
+Decided 2026-10-12: **page restrictions only** (open question 4). Sales can
+see the policy space, but the confidential pages are restricted to GRC. You
+create the Atlassian users and the content yourself. Stewardry never writes
+to Atlassian.
+
+1. **Users.** Create separate Atlassian users for Sales, GRC, and Legal,
+   plus an expert author account. None of them is the site admin. Give each a
+   Jira and Confluence license.
+2. **Jira.** Create a project with key `SQR`, and give Sales browse
+   permission. Create request `SQR-1` from `fixtures/jira/SQR-1.json`
+   (summary, reporter, and the customer field if you add one; leave the
+   internal notes in the description). Record the customer field's ID
+   (`customfield_…`) if you create one.
+3. **Policy pages.** Run `make confluence-pages` and open
+   `build/confluence-pages/index.html`.
+   1. Create a space with key `SECPOL`, and give Sales, GRC, and the expert
+      view access (the expert also needs edit).
+   2. For each of the 21 policies, create a page with the title shown. Open
+      the policy's file in the browser, select all, copy, and paste. Plain
+      content only: no macros, panels, or other formatting.
+   3. On SEC-04, SEC-09, and SEC-17, add a view restriction for the GRC user
+      only (and the expert, if they need to edit those pages).
+4. **Check the restriction in Atlassian's UI.** Signed in as the Sales
+   Atlassian user, confirm SEC-04 cannot be opened. Record the date.
+5. **Record the page IDs.** Take each page's ID from its URL
+   (`…/pages/<id>/…`) and record it here. `policies/catalogs/secpol.yaml` is
+   updated from this list in the S15 pull request.
+
+| Policy | Page ID | Restricted to GRC |
+|---|---|---|
+| SEC-01 … SEC-21 | | SEC-04, SEC-09, SEC-17 |
+
+The legal playbook space (`LEGALPB`) is needed only for Milestone 3. It can
+wait.
 
 ## 8. Model access (configure; do not share)
 
@@ -175,6 +215,33 @@ supply the Keycloak admin credential as `KEYCLOAK_ADMIN_USER` and
 | Anthropic API key for Stewardry | Stewardry's `.env` (git-ignored) as `ANTHROPIC_API_KEY`, or an `ant auth login` profile | `test -n "$ANTHROPIC_API_KEY" && echo set` |
 | Spend limit | Anthropic Console → the workspace used for Stewardry → limits | Record the limit amount, not the key |
 | Hub client secret for the `stewardry` client (after G2) | Stewardry's `.env` as `STEWARDRY_HUB_CLIENT_SECRET` | `grep -c '^STEWARDRY_HUB_CLIENT_SECRET=.\+' .env` |
+
+## 9. The connected run (S15)
+
+Do this after sections 1–7 and your go-ahead.
+
+1. **Bootstrap the real hub.** Start the stack with the real upstreams
+   (section 1), then run `stewardry hub bootstrap` with
+   `KEYCLOAK_ADMIN_USER` and `KEYCLOAK_ADMIN_PASSWORD` set in your shell.
+   Review `deploy/hub/proposed-access-mapping.yaml`.
+2. **Fill in the settings file.** Copy
+   `deploy/connected/connected.example.yaml` to
+   `deploy/connected/connected.yaml` (git-ignored). Fill in the `cloudId`,
+   the request key, and three page IDs: SEC-05 (readable), SEC-04
+   (restricted), and SEC-07 (to edit).
+3. **Set the settings in your shell** (values never printed):
+   `STEWARDRY_HUB_ISSUER`; `STEWARDRY_HUB_CLIENT_SECRET` (from
+   `deploy/hub/.secrets.env`); and `STEWARDRY_ATLASSIAN_CLOUD_ID`.
+4. **Run `make test-connected`.** It starts Stewardry on
+   `http://localhost:8700` and prompts you as it goes:
+   1. Sign in as each of alice (Sales), bob (GRC), and legal, each in its
+      own private window. Connect Atlassian as that person's own Atlassian
+      account.
+   2. When asked, edit SEC-07 in Confluence's UI as the expert.
+   3. Optionally allow the outage and disconnect checks.
+5. **Results.** The report, labeled `connected`, and the recorded response
+   shapes (G7, G8) are written to `docs/connected/<date>/`. Check them for
+   anything that should not be published before committing.
 
 ## Sign-off
 

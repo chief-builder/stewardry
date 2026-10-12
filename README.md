@@ -88,6 +88,11 @@ Milestone 1 is in progress. Done so far:
   exchange client. It is recommended for Milestone 2
   ([report](docs/plan/s14c-stewardry-gateway.md)) and is not used in
   Milestone 1.
+- **S15 (preparation):** a Connect Atlassian page, where each user gets
+  their own consent link, never stored. Also a kit that renders the synthetic
+  policies as Confluence pages for you to paste, and the manual connected
+  harness (`make test-connected`). The connected run itself waits for the
+  setup checklist ([docs/setup-verification.md](docs/setup-verification.md)).
 
 There are no approvals and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
