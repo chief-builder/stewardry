@@ -264,7 +264,11 @@ class AtlassianReads:
 
     def account_id(self, credential: GatewayCredential | None) -> str | None:
         payload = self._call(credential, USER_INFO, {})
-        value = payload.get("accountId") if isinstance(payload, Mapping) else None
+        if not isinstance(payload, Mapping):
+            return None
+        # Atlassian's REST API spells it accountId; the stand-in uses account_id.
+        # The real MCP server's spelling is confirmed in S15 (G11).
+        value = payload.get("accountId") or payload.get("account_id")
         return str(value) if value else None
 
     # ------------------------------------------------------------- consent
