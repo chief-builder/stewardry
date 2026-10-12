@@ -49,8 +49,10 @@ Planning did not read them, and nothing here touches them.
   with the real upstreams, and only Atlassian. A longer consent wait leaves
   time for a person in a browser:
 
+  Run this from the Stewardry checkout (`stack-up` is the broker's make target):
+
   ```bash
-  GATEWAY_UPSTREAMS= GATEWAY_ENABLED_UPSTREAMS=atlassian GATEWAY_CONSENT_WAIT_S=120 make stack-up
+  GATEWAY_UPSTREAMS= GATEWAY_ENABLED_UPSTREAMS=atlassian GATEWAY_CONSENT_WAIT_S=120 make -C ../vendor-token-broker stack-up
   ```
 
   Section 5's last row then shows a real `cloudId`.
