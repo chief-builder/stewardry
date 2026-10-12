@@ -1,0 +1,16 @@
+# Connected verification settings (S15). Copy to deploy/connected/connected.yaml
+# (git-ignored) and fill in after the setup checklist. IDs and names only:
+# never a password, token, or secret.
+cloud_id: replace-with-the-site-cloudId
+# Hub usernames for the personas (from the access mapping).
+personas:
+  sales: alice
+  grc: bob
+  legal: legal
+jira:
+  request_key: SQR-1            # a synthetic request Sales can read
+  customer_field: ""            # e.g. customfield_10042, if the request carries one
+pages:                           # Confluence page IDs, from each page's URL
+  readable: replace-with-SEC-05-page-id      # GRC reads it in full
+  restricted: replace-with-SEC-04-page-id    # GRC-only; Sales must be denied
+  edited: replace-with-SEC-07-page-id        # the expert edits it during the run

@@ -25,7 +25,7 @@ def _blocked(*args: Any, **kwargs: Any) -> None:
 def _block_network(
     request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[None]:
-    if request.node.get_closest_marker("live_model") or request.node.get_closest_marker("stack"):
+    if any(request.node.get_closest_marker(m) for m in ("live_model", "stack", "connected")):
         yield  # these tiers need the network and run only when asked for; the stack
         return  # tier limits itself to localhost (tests/stack/conftest.py)
     monkeypatch.setattr(socket.socket, "connect", _blocked)
