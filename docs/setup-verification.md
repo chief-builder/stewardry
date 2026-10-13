@@ -247,15 +247,18 @@ Do this after sections 1–7 and your go-ahead.
    3. Optionally allow the outage and disconnect checks.
 5. **Results.** The report, labeled `connected`, and the recorded response
    shapes (G7, G8) are written to `docs/connected/<date>/`. Check them for
-   anything that should not be published before committing.
+   anything that should not be published before committing. The first
+   report, [2026-10-12](connected/2026-10-12/report.md), replaced the site's
+   cloud ID, site name, and account IDs with placeholders, and kept the raw
+   files in the git-ignored `build/`.
 
 ## Sign-off
 
 | Item | Done | Date | Notes |
 |---|---|---|---|
 | Sections 1–5 recorded without secrets | | | |
-| Confluence plan supports restrictions | | | |
-| Account mapping complete and distinct | | | |
-| Restricted page denied to Sales in Atlassian's UI | | | |
+| Confluence plan supports restrictions | yes | 2026-10-12 | Standard trial; SEC-04, SEC-09, SEC-17 restricted to GRC |
+| Account mapping complete and distinct | yes | 2026-10-12 | Three distinct accountIds on one site ([report](connected/2026-10-12/report.md)) |
+| Restricted page denied to Sales in Atlassian's UI | | | The UI check is not recorded. Denied through the gateway on 2026-10-12 (404 tool error) |
 | Gap decisions G1, G2, G3, G4, G6 | yes | 2026-10-10 | See broker-contracts.md |
-| Hub bootstrap run against this stack (after go-ahead) | | | |
+| Hub bootstrap run against this stack (after go-ahead) | yes | 2026-10-12 | Real-upstreams stack; broker client unchanged |

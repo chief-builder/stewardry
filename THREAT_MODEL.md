@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, S15 preparation (connected harness, Connect page), 2026-10-12. Each milestone
+Status: updated for Milestone 1, S15 connected verification, 2026-10-12. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -74,7 +74,7 @@ flowchart LR
 | Simulated model output mistaken for evidence | Transports have a kind. A scripted test double can only serve `scripted-example` runs | S11 |
 | Reviewer-only content reaching Sales (answers, passages, policy names, strengths, expert reasons, screening excerpts, reviewer names, links) | Each page gets a server-side view model built for its role. The Sales model holds only the request, plain status text, and counts. Leak tests compare the Sales HTML with everything drafting stored | S12 |
 | Someone opening a page meant for another role or person | Task pages are for the requester only (404 for anyone else). Review is for a GRC reviewer assigned to the customer who did not request the task. The registry is for platform engineers, engagement owners, and auditors. Refusals are audited (`view.denied`); successful review views are audited too | S12 |
-| A confidential passage shown to a reviewer who could not read it | Passage text from a confidential policy is shown only to the reviewer whose own access read it; other reviewers see the citation without the text. This is Stewardry's rule. Per-page Confluence permissions for other viewers are not rechecked when the page is viewed (S15 verifies vendor-side denials) | S12, S15 |
+| A confidential passage shown to a reviewer who could not read it | Passage text from a confidential policy is shown only to the reviewer whose own access read it; other reviewers see the citation without the text. This is Stewardry's rule. Per-page Confluence permissions for other viewers are not rechecked when the page is viewed. S15 verified that Atlassian denies a restricted page to Sales (a 404 tool error) | S12, S15 |
 | A shadow verdict taken as approval | Verdicts (agree, edit, reject) are stored for comparison only. They change no draft and release nothing, and the page says so. A repeated form submission is a no-op | S12 |
 | A known policy conflict missed in another task | Conflicts are recorded per policy passage (`evidence_conflicts`) and apply to every task. Any answer citing a conflicting passage needs an expert. The shared note names only policy IDs and passages, never model or customer text. A document can therefore make other tasks more cautious, but cannot add customer text to them or approve anything. Found by the 2026-10-11 live baseline (evals/reports/README.md) | S13 |
 | Hub bootstrap changing the broker's identity setup, or pointed at the wrong hub | It accepts only a local issuer for realm `mcp`, and the hub's discovery document must name exactly that issuer. It only adds: an existing client or user is never edited (differences are reported). The broker's clients, client scopes, and users are compared before and after, and any change stops it. No `offline_access`, groups, direct grants, or service account. Checked against the broker's pinned Keycloak and realm in the stack tier | S14 |

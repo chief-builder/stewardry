@@ -124,6 +124,17 @@ test-stack`, also in CI):
 
   No outage was reported as consent.
 
+## Observed on the real site (S15, 2026-10-12)
+
+- A restricted Confluence page read as Sales came back as a tool error
+  carrying Atlassian's 404 `NOT_FOUND`. It classifies as `upstream_tool_error`,
+  and the operation is refused. Atlassian does not separate "restricted" from
+  "missing", so Stewardry does not either.
+- With the broker paused, the real gateway's text matched the cataloged
+  `unavailable` template.
+- Consent arrived only as a URL elicitation. No outage or denial was reported
+  as consent. See [broker-contracts.md](../broker-contracts.md#observed-on-the-real-atlassian-site-s15-2026-10-12).
+
 ## Consequences
 
 - Bumping the broker pin needs a catalog review. The offline test enforces

@@ -144,7 +144,8 @@ connected verification before connected access is claimed.
 | G3 | Add per-agent policy in Stewardry, with a Stewardry-only gateway instance as later hardening. A gateway-side per-client policy is an upstream proposal only. | [ADR 0009](adr/0009-per-agent-policy.md), [proposals](proposals/broker-upstream-proposals.md) |
 | G4 | Detect consent only from the structured elicitation. Classify other errors with a pinned template catalog, failing closed. A structured error code is an upstream proposal only. | [ADR 0010](adr/0010-gateway-error-classification.md) |
 | G6 | Keep reviewer credentials in memory only, and pause drafting when they lapse. | ADR 0006 |
-| G5, G7–G12 | Unchanged: application work or connected verification, as described below. | |
+| G7, G8, G11 | Verified on the real site in S15. G7 stays open for Jira fields and page listing. | [Observed on the real Atlassian site](#observed-on-the-real-atlassian-site-s15-2026-10-12) |
+| G5, G9, G10, G12 | Unchanged: application work or setup verification, as described below. | |
 
 | ID | Gap | Why it matters to the spec | Options (owner decides) |
 |---|---|---|---|
@@ -207,3 +208,41 @@ connected verification before connected access is claimed.
   data and accepts few arguments. Data shapes, site and account mapping, and
   page versions are still verified only in the connected step S15 (G7, G8).
 
+
+### Observed on the real Atlassian site (S15, 2026-10-12)
+
+From the connected run ([report](connected/2026-10-12/report.md), labeled
+**connected**). One person operated every role. The shapes are pinned as
+sanitized fixtures in `tests/fixtures/atlassian-rovo-2026-10-12.json` and
+checked offline by `tests/unit/test_atlassian_rovo_shapes.py`.
+
+- **Envelope:** every result is JSON text `{"data": …}` with no structured
+  content. The adapter unwraps `data` (and `result`, the stand-in's wrapper).
+- **G11, closed:** `atlassianUserInfo` returns `data.accountId`. Sales,
+  GRC, and Legal mapped to three distinct accounts on the same site.
+  `getAccessibleAtlassianResources` returns `data.resources[].cloudId`.
+- **G7, closed for page reads:** `getConfluenceContent` with
+  `detail: "full"` returns `metadata.version.number` and the page's storage
+  HTML in `body.value`. The HTML had no macro wrappers for these pages. Table
+  cells wrap their text in `<p>`, which the evidence parser now treats as
+  part of the cell. An expert edit in Confluence's UI changed the version
+  (1 to 2) and the content hash.
+- **G8, closed:** a page restricted to GRC, read as Sales, returns a tool
+  error (`is_error: true`) whose text is
+  `{"error":true,"message":"getConfluenceContent failed: 404 … NOT_FOUND","statusCode":404}`.
+  Atlassian does not say whether the page is restricted or missing. Stewardry
+  classifies it as `upstream_tool_error` and refuses the operation; it is
+  never consent and never success.
+- **Outage:** with the broker paused, the gateway answered
+  `a dependency is unavailable (broker unreachable (ReadTimeout)); retry shortly`,
+  which ADR 0010's catalog classifies as `unavailable`.
+- **Disconnect:** `disconnect_atlassian` revoked the token at Atlassian and
+  deleted the broker's copy. The next Connect produced a fresh consent link.
+- **Still open: Jira fields.** `getJiraIssue` with
+  `fields: [created, reporter, summary]` and `fieldsByKeys: true` returned
+  only `summary`. The tool's default `view` is `compact`, which may trim the
+  fields. This has not been tested. The site also has no `customer`
+  field, so that policy field reads as empty until one is mapped
+  (`STEWARDRY_JIRA_CUSTOMER_FIELD`).
+- **Not yet observed:** `searchConfluence` (page listing). Its shape stays an
+  assumption; an unrecognized shape fails the run.
