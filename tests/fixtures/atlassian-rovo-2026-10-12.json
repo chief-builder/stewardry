@@ -1,5 +1,5 @@
 {
-  "note": "Real response shapes from Atlassian's Rovo MCP server through the broker's gateway, recorded in the S15 connected run on 2026-10-12. Account IDs, the cloudId, and the site URL are replaced with placeholders; content is the synthetic policy text.",
+  "note": "Real response shapes from Atlassian's Rovo MCP server through the broker's gateway, recorded in the S15 connected run on 2026-10-12. Account IDs, the cloudId, and the site URL are replaced with placeholders; content is the synthetic policy text. The reporter's email address is replaced too.",
   "responses": {
     "accessible_resources": {
       "arguments": {},
@@ -57,6 +57,10 @@
       "text": "{\"data\":{\"accountId\":\"712020:00000000-0000-4000-8000-000000000001\"}}",
       "tool": "atlassian_atlassianUserInfo",
       "type": "success"
+    },
+    "jira_issue_full_view": {
+      "type": "success",
+      "text": "{\"data\":{\"id\":\"10036\",\"key\":\"SQR-1\",\"fields\":{\"summary\":\"Security questionnaire for Larkspur Analytics (synthetic)\",\"reporter\":{\"accountId\":\"712020:00000000-0000-4000-8000-000000000001\",\"emailAddress\":\"sales-persona@example.com\",\"displayName\":\"Sales Persona\",\"active\":true,\"timeZone\":\"America/New_York\",\"accountType\":\"atlassian\"},\"created\":\"2026-10-12T12:56:55.199-0400\"},\"appliedContentFormat\":\"markdown\"}}"
     }
   }
 }

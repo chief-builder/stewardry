@@ -113,6 +113,15 @@ def _unwrap(value: Any, key: str) -> Any:
     return value
 
 
+def _field_value(value: Any) -> Any:
+    """A Jira user (such as `reporter`) is reduced to its display name. The
+    full object carries the person's email address and account ID, which no
+    stage needs."""
+    if isinstance(value, Mapping) and "displayName" in value:
+        return value["displayName"]
+    return value
+
+
 def _parse(outcome: ToolSuccess) -> Any:
     """The result value. Two wrappers are removed:
 
@@ -211,7 +220,10 @@ class AtlassianReads:
             raise HandlerStop("unexpected Jira response shape (see gap G7)", "fail")
         return {
             "issue_key": issue_key,
-            "fields": {name: fields.get(keys[name]) if name in keys else None for name in names},
+            "fields": {
+                name: _field_value(fields.get(keys[name])) if name in keys else None
+                for name in names
+            },
         }
 
     def confluence_list_pages(

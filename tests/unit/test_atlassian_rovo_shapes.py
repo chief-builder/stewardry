@@ -82,3 +82,13 @@ def test_jira_read_requests_only_standard_or_mapped_fields() -> None:
         result["fields"]["summary"] == "Security questionnaire for Larkspur Analytics (synthetic)"
     )
     assert result["fields"]["customer"] is None
+
+
+def test_the_full_view_returns_the_fields_and_a_reporter_is_only_a_name() -> None:
+    gateway = Recorded("jira_issue_full_view")
+    adapter = AtlassianReads(gateway, AtlassianSettings(SITE, PREFIX), sleep=lambda _: None)
+    result = adapter.jira_get_request(CREDENTIAL, "SQR-1", ["summary", "reporter", "created"])
+    assert gateway.sent[0]["view"] == "full"
+    assert result["fields"]["reporter"] == "Sales Persona"
+    assert result["fields"]["created"] == "2026-10-12T12:56:55.199-0400"
+    assert "example.com" not in json.dumps(result) and "712020:" not in json.dumps(result)
