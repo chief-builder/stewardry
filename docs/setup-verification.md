@@ -200,8 +200,12 @@ to Atlassian.
 4. **Check the restriction in Atlassian's UI.** Signed in as the Sales
    Atlassian user, confirm SEC-04 cannot be opened. Record the date.
 5. **Record the page IDs.** Take each page's ID from its URL
-   (`…/pages/<id>/…`) and record it here. `policies/catalogs/secpol.yaml` is
-   updated from this list in the S15 pull request.
+   (`…/pages/<id>/…`), or list them all at once by opening
+   `https://<site>.atlassian.net/wiki/rest/api/content?spaceKey=SECPOL&type=page&limit=50`
+   as the expert (a read in your own browser). The IDs go into the site
+   catalog `deploy/connected/secpol.site.yaml`. The repository's
+   `policies/catalogs/secpol.yaml` keeps the synthetic IDs that the offline
+   tests, replays, and evals use.
 
 | Policy | Page ID | Restricted to GRC |
 |---|---|---|
