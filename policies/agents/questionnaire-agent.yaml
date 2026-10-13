@@ -45,8 +45,7 @@ policy:
     - read_policy_passages
     - submit_answer
     - route_to_expert
-  # PLACEHOLDER budgets: not yet agreed (docs/plan/open-questions.md, Q9).
-  # They must be set before any connected session.
+  # Agreed by the owner on 2026-10-13 (Q9); see docs/brief.md.
   budgets:
     per_run_usd: 5.00
     per_run_model_calls: 400

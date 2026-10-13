@@ -14,6 +14,9 @@
 | Q4, restriction design (2026-10-12) | Page restrictions only: Sales sees the policy space; SEC-04, SEC-09, and SEC-17 are restricted to GRC |
 | Q5, Atlassian users (2026-10-12) | None exist yet. The owner creates Sales, GRC, Legal, and an expert author, none of them the site admin |
 | Publishing the synthetic pages (2026-10-12) | Stewardry renders them (`make confluence-pages`); the owner pastes them into Confluence. Stewardry never writes to Atlassian |
+| Q7, refusal fallback (2026-10-13) | Off: a run never silently changes model |
+| Q8, model (2026-10-13) | `claude-opus-5-5` for iteration 1 |
+| Q9, spend limits (2026-10-13) | $5 and 400 model calls per run, 8 per question, $10 per installation per UTC day ([brief](../brief.md)) |
 
 ## Still open
 
@@ -43,12 +46,9 @@ Q12, which S8 needs.
 
 ### Model and cost
 
-7. **Refusal fallback.** Leave the Anthropic server-side refusal fallback
-   off, so a run never silently changes model? This is proposed.
-8. **Model.** Accept `claude-opus-5-5` as the iteration 1 model?
-9. **Spend limits.** What daily and per-run spend ceilings should be the
-   starting operational budgets? S11 added a per-question limit on model
-   calls (placeholder: 8).
+7. *Resolved 2026-10-13 (see above).*
+8. *Resolved 2026-10-13 (see above).*
+9. *Resolved 2026-10-13 (see above).*
 
 ### Process and scope
 

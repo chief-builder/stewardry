@@ -107,6 +107,10 @@ Milestone 1 is in progress. Done so far:
   See the [report](docs/connected/2026-10-12/report.md), labeled
   **connected**. It verifies compatibility only. It is not a shadow run and
   says nothing about model quality.
+- **S16 (preparation):** the [engagement brief](docs/brief.md) and
+  [retention](docs/retention.md) are recorded before any shadow session. The
+  shadow-run harness (`make shadow-run`) is ready. No shadow session has run
+  yet.
 
 There are no approvals and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).
