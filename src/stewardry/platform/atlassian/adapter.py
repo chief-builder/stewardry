@@ -63,6 +63,8 @@ TOOLS_USED = (
 CLOUD_ID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 SPACE_KEY = re.compile(r"^[A-Z][A-Z0-9]{1,31}$")
 LIST_LIMIT = 100
+# Jira's own field IDs that a policy may name directly; anything else needs a mapping.
+JIRA_STANDARD_FIELDS = frozenset({"summary", "reporter", "created", "updated", "status", "labels"})
 
 PAUSE_REASONS = {
     "needs_consent": "Atlassian is not connected for the acting user; they must connect it",
@@ -105,16 +107,24 @@ class ConnectRefused(Exception):
     pass
 
 
+def _unwrap(value: Any, key: str) -> Any:
+    if isinstance(value, Mapping) and set(value) == {key}:
+        return value[key]
+    return value
+
+
 def _parse(outcome: ToolSuccess) -> Any:
-    structured = outcome.structured
-    if isinstance(structured, Mapping) and set(structured) == {"result"}:
-        # MCP structured content must be an object on 2025-11-25, so servers
-        # wrap other values (a list of sites, for example) as {"result": ...}.
-        return structured["result"]
-    if structured is not None:
-        return structured
+    """The result value. Two wrappers are removed:
+
+    - `{"result": …}`: MCP structured content must be an object on
+      2025-11-25, so servers wrap other values (the stand-in stack, S14b);
+    - `{"data": …}`: Atlassian's Rovo MCP server returns every result as text
+      JSON in this envelope (observed on the connected site, S15).
+    """
+    if outcome.structured is not None:
+        return _unwrap(_unwrap(outcome.structured, "result"), "data")
     try:
-        return json.loads(outcome.text)
+        return _unwrap(json.loads(outcome.text), "data")
     except json.JSONDecodeError:
         return None
 
@@ -172,9 +182,16 @@ class AtlassianReads:
     def jira_get_request(
         self, credential: GatewayCredential | None, issue_key: str, field_names: Iterable[str]
     ) -> dict[str, Any]:
-        """Only the allow-listed fields, by their policy names."""
+        """Only the allow-listed fields, by their policy names. A policy name is
+        sent as a Jira field only if it is a standard field or mapped to a
+        custom field; an unmapped custom name (such as `customer` on a site
+        without that field) is not requested and reads as None."""
         names = sorted(set(field_names))
-        keys = {name: self.settings.jira_field_keys.get(name, name) for name in names}
+        keys = {
+            name: self.settings.jira_field_keys.get(name, name)
+            for name in names
+            if name in self.settings.jira_field_keys or name in JIRA_STANDARD_FIELDS
+        }
         payload = self._call(
             credential,
             GET_JIRA_ISSUE,
@@ -191,7 +208,7 @@ class AtlassianReads:
             raise HandlerStop("unexpected Jira response shape (see gap G7)", "fail")
         return {
             "issue_key": issue_key,
-            "fields": {name: fields.get(key) for name, key in keys.items()},
+            "fields": {name: fields.get(keys[name]) if name in keys else None for name in names},
         }
 
     def confluence_list_pages(
@@ -249,7 +266,11 @@ class AtlassianReads:
         body = payload.get("body")
         if isinstance(body, Mapping):
             body = body.get("value")
-        version = payload.get("version")
+        # Atlassian's server reports the version under metadata (S15, gap G7).
+        metadata = payload.get("metadata")
+        version = payload.get("version") or (
+            metadata.get("version") if isinstance(metadata, Mapping) else None
+        )
         return {
             "page_id": str(payload.get("id", page_id)),
             "title": payload.get("title"),
@@ -259,8 +280,16 @@ class AtlassianReads:
 
     def accessible_site_ids(self, credential: GatewayCredential | None) -> frozenset[str]:
         payload = self._call(credential, ACCESSIBLE_RESOURCES, {})
+        # A list of sites with `id` (the stand-in), or {"resources": [...]} with
+        # `cloudId` (Atlassian's server, S15).
+        if isinstance(payload, Mapping):
+            payload = payload.get("resources")
         items = payload if isinstance(payload, list) else []
-        return frozenset(str(i.get("id")) for i in items if isinstance(i, Mapping))
+        return frozenset(
+            str(i.get("cloudId") or i.get("id"))
+            for i in items
+            if isinstance(i, Mapping) and (i.get("cloudId") or i.get("id"))
+        )
 
     def account_id(self, credential: GatewayCredential | None) -> str | None:
         payload = self._call(credential, USER_INFO, {})

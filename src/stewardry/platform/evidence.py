@@ -111,7 +111,9 @@ class _Blocks(HTMLParser):
         self._text: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag in BLOCKS:
+        if tag == "p" and self._tag in {"th", "td"}:
+            self._text.append(" ")  # Confluence wraps cell text in <p>; it stays in the cell
+        elif tag in BLOCKS:
             self._flush()
             self._tag = tag
         elif tag == "tr":

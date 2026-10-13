@@ -1,0 +1,62 @@
+{
+  "note": "Real response shapes from Atlassian's Rovo MCP server through the broker's gateway, recorded in the S15 connected run on 2026-10-12. Account IDs, the cloudId, and the site URL are replaced with placeholders; content is the synthetic policy text.",
+  "responses": {
+    "accessible_resources": {
+      "arguments": {},
+      "text": "{\"data\":{\"resources\":[{\"cloudId\":\"11111111-2222-4333-8444-555555555555\",\"url\":\"https://example-site.atlassian.net\",\"products\":[{\"id\":\"jira\",\"access\":\"read-only\"},{\"id\":\"confluence\",\"access\":\"read-only\"}]}]}}",
+      "tool": "atlassian_getAccessibleAtlassianResources",
+      "type": "success"
+    },
+    "broker_outage": {
+      "arguments": {},
+      "text": "a dependency is unavailable (broker unreachable (ReadTimeout)); retry shortly",
+      "tool": "atlassian_atlassianUserInfo",
+      "type": "tool_error"
+    },
+    "jira_issue": {
+      "arguments": {
+        "cloudId": "11111111-2222-4333-8444-555555555555",
+        "fields": [
+          "created",
+          "customer",
+          "reporter",
+          "summary"
+        ],
+        "fieldsByKeys": true,
+        "issueIdOrKey": "SQR-1",
+        "responseContentFormat": "markdown"
+      },
+      "text": "{\"data\":{\"appliedContentFormat\":\"markdown\",\"id\":\"10036\",\"key\":\"SQR-1\",\"fields\":{\"summary\":\"Security questionnaire for Larkspur Analytics (synthetic)\"}}}",
+      "tool": "atlassian_getJiraIssue",
+      "type": "success"
+    },
+    "page": {
+      "arguments": {
+        "cloudId": "11111111-2222-4333-8444-555555555555",
+        "content_format": "html",
+        "content_id": "622760",
+        "detail": "full"
+      },
+      "text": "{\"data\":{\"id\":\"622760\",\"type\":\"page\",\"title\":\"SEC-05 Encryption and Key Management\",\"status\":\"current\",\"spaceId\":\"753669\",\"snapshotToken\":\"v:1\",\"detail\":\"full\",\"body\":{\"format\":\"html\",\"value\":\"<h1 data-local-id=\\\"ae29f6393594\\\">SEC-05 Encryption and Key Management</h1><table data-local-id=\\\"0420104f-0ed0-46a5-8dc2-d73f005aee0a\\\" data-width=\\\"760\\\"><thead><tr data-local-id=\\\"9b313a90-6273-4dfa-8e3b-8bf32a39327d\\\"><th data-local-id=\\\"18a4b012-fd29-4221-a0e3-56d21bf14948\\\"><p data-local-id=\\\"bad88544a46a\\\">Policy ID</p></th><td data-local-id=\\\"0d5b9297-54c7-48ba-976c-3d7c3048338e\\\"><p data-local-id=\\\"02c592c51d77\\\">SEC-05</p></td></tr></thead><tbody><tr data-local-id=\\\"30ed634c-d608-4760-a9b8-0065e8496123\\\"><th data-local-id=\\\"6b23f874-f552-4d11-a5e6-079a803d6100\\\"><p data-local-id=\\\"64f4fe3938c9\\\">Version</p></th><td data-local-id=\\\"9280067e-6541-4a4f-a870-0edec0f10b9d\\\"><p data-local-id=\\\"58f5a5e78377\\\">3</p></td></tr><tr data-local-id=\\\"2859a4db-65b2-4c15-a419-6c31db03d269\\\"><th data-local-id=\\\"070f6d45-a32d-4ea9-bb13-839ac2951a64\\\"><p data-local-id=\\\"135116fccc75\\\">Status</p></th><td data-local-id=\\\"4719eb2d-d05d-46e1-99ca-124f1d61dd31\\\"><p data-local-id=\\\"a672baa9e2d2\\\">current</p></td></tr><tr data-local-id=\\\"ce027669-c7d5-4aba-85d6-c2a81639719d\\\"><th data-local-id=\\\"863320b8-9ab4-4739-a154-7438fb378de5\\\"><p data-local-id=\\\"e1078ec033d0\\\">Classification</p></th><td data-local-id=\\\"ecaf0a34-b260-4ce6-82d5-9347cf61988c\\\"><p data-local-id=\\\"a463f7d79138\\\">internal</p></td></tr><tr data-local-id=\\\"36d9971e-65b1-4075-a93a-4cf9e5376aa7\\\"><th data-local-id=\\\"f2e44bc5-55f2-4631-91c2-5b9ff92dfffa\\\"><p data-local-id=\\\"26dc87903fd6\\\">Owner</p></th><td data-local-id=\\\"37a758eb-60a0-414f-92cd-70091e734a84\\\"><p data-local-id=\\\"ee75af5a27a4\\\">Security Engineering Lead</p></td></tr><tr data-local-id=\\\"274662c8-597b-4434-b2bb-70d5c2578c91\\\"><th data-local-id=\\\"2ce2baaf-7bae-4130-b9ba-5d235764efdf\\\"><p data-local-id=\\\"c465ca100fc3\\\">Effective date</p></th><td data-local-id=\\\"5a942b47-a271-4942-afc0-f909a871e273\\\"><p data-local-id=\\\"69d840416342\\\">2026-08-15</p></td></tr><tr data-local-id=\\\"a8bad1e0-b88f-4883-a85d-47a84e4a1e96\\\"><th data-local-id=\\\"08bc9272-3d5c-4ed4-b647-99896be4e993\\\"><p data-local-id=\\\"fc6cfa2174e2\\\">Review date</p></th><td data-local-id=\\\"5991a712-95fa-47d5-a3cb-56ff1ecf331c\\\"><p data-local-id=\\\"e976eca394e1\\\">2027-08-15</p></td></tr></tbody></table><h2 data-local-id=\\\"8d02ad6e99cb\\\">Encryption</h2><p data-local-id=\\\"c47fd20a42ad\\\">5.1 Customer data is encrypted at rest with AES-256 in all production databases, object storage, and backups.</p><p data-local-id=\\\"5ec13b0b6229\\\">5.2 Data in transit over public networks is encrypted with TLS 1.2 or higher. TLS 1.0 and 1.1 are disabled.</p><p data-local-id=\\\"3fedd437d225\\\">5.3 Service-to-service traffic inside the production network is encrypted with mutual TLS.</p><h2 data-local-id=\\\"58726cbc9e9b\\\">Key management</h2><p data-local-id=\\\"7e0f5aa44c9c\\\">5.4 Encryption keys are managed in the cloud provider&#39;s key management service and are rotated at least every 12 months.</p><p data-local-id=\\\"1ecac16c0a23\\\">5.5 Access to key management functions is restricted to the Platform Security team, and every use of a key is logged.</p><p data-local-id=\\\"10837606edab\\\">5.6 Customer-managed encryption keys are not offered.</p>\"},\"metadata\":{\"hasSpaceInstructions\":false,\"totalViews\":3,\"authorId\":\"712020:00000000-0000-4000-8000-000000000002\",\"version\":{\"number\":1,\"createdAt\":\"2026-10-12T17:36:57.781Z\",\"message\":\"\"}}}}",
+      "tool": "atlassian_getConfluenceContent",
+      "type": "success"
+    },
+    "restricted_page": {
+      "arguments": {
+        "cloudId": "11111111-2222-4333-8444-555555555555",
+        "content_format": "html",
+        "content_id": "1638401",
+        "detail": "full"
+      },
+      "text": "{\"error\":true,\"message\":\"getConfluenceContent failed: 404. Details: {\\\"errors\\\":[{\\\"status\\\":404,\\\"code\\\":\\\"NOT_FOUND\\\",\\\"title\\\":\\\"Not Found\\\",\\\"detail\\\":null}]}\",\"statusCode\":404}",
+      "tool": "atlassian_getConfluenceContent",
+      "type": "tool_error"
+    },
+    "user_info": {
+      "arguments": {},
+      "text": "{\"data\":{\"accountId\":\"712020:00000000-0000-4000-8000-000000000001\"}}",
+      "tool": "atlassian_atlassianUserInfo",
+      "type": "success"
+    }
+  }
+}
