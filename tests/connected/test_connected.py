@@ -352,7 +352,11 @@ def test_sales_reads_the_jira_request(session: Session) -> None:
     key = session.config["jira"]["request_key"]
     try:
         result = session.as_("sales").jira_get_request(session.credential("sales"), key, fields)
-        session.report["checks"]["Jira field read as Sales"] = {"result": "pass", "read": result}
+        missing = sorted(name for name, value in result["fields"].items() if value is None)
+        session.report["checks"]["Jira field read as Sales"] = {
+            "result": f"partial (not returned: {', '.join(missing)})" if missing else "pass",
+            "read": result,
+        }
     except Exception as exc:  # recorded for G7; the raw response is in responses.json
         session.report["checks"]["Jira field read as Sales"] = {"result": f"FAIL: {exc}"}
         raise
@@ -448,6 +452,7 @@ def test_outages_are_not_consent(session: Session) -> None:
         session.report["checks"]["outage handling"] = {"result": "skipped by the operator"}
         pytest.skip("operator skipped the outage check")
     subprocess.run(["docker", "pause", "vtb-broker-kc"], check=True)  # noqa: S607
+    session.recorder.persona = "grc"
     try:
         outcome = session.recorder.call_tool(
             session.credential("grc"), "atlassian_atlassianUserInfo", {}, interactive=False
@@ -469,6 +474,7 @@ def test_disconnect_then_consent_again(session: Session) -> None:
     if answer.lower() != "y":
         session.report["checks"]["disconnect then consent"] = {"result": "skipped by the operator"}
         pytest.skip("operator skipped the disconnect check")
+    session.recorder.persona = "legal"
     session.recorder.call_tool(
         session.credential("legal"), "disconnect_atlassian", {}, interactive=False
     )
