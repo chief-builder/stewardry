@@ -42,8 +42,10 @@ REFRESH_MARGIN = dt.timedelta(seconds=60)
 HERE = Path(__file__).parent
 
 SECURITY_HEADERS = {
-    # No referrer, so the authorization code in the callback URL cannot leak.
-    "Referrer-Policy": "no-referrer",
+    # No referrer to any other site, so the authorization code in the callback
+    # URL cannot leak. Not "no-referrer": with it, browsers send `Origin: null`
+    # on same-site form posts, and the Origin check below refuses them.
+    "Referrer-Policy": "same-origin",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Cache-Control": "no-store",

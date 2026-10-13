@@ -93,7 +93,7 @@ def submit(client: TestClient, key: str = "k1", **extra: str) -> httpx2.Response
 def test_signed_out_page_and_security_headers(services: Services) -> None:
     response = browser(services).get("/")
     assert response.status_code == 200 and 'href="/login"' in response.text
-    assert response.headers["referrer-policy"] == "no-referrer"
+    assert response.headers["referrer-policy"] == "same-origin"
     assert response.headers["cache-control"] == "no-store"
     assert "default-src 'none'" in response.headers["content-security-policy"]
     assert browser(services).get("/healthz").json() == {"ok": True}
@@ -230,6 +230,18 @@ def test_forms_need_a_session_and_its_csrf_token(services: Services, hub: FakeHu
         "/tasks", data=form | {"csrf_token": csrf(alice)}, headers={"origin": "https://evil.test"}
     )
     assert cross_site.status_code == 403 and "another site" in cross_site.text
+    # A browser posting from Stewardry's own page sends its origin (because the
+    # referrer policy is same-origin; with no-referrer it would send "null").
+    opaque = alice.post(
+        "/tasks", data=form | {"csrf_token": csrf(alice)}, headers={"origin": "null"}
+    )
+    assert opaque.status_code == 403
+    same_site = alice.post(
+        "/tasks",
+        data=form | {"csrf_token": csrf(alice), "jira_issue_key": "SQR-1"},
+        headers={"origin": BASE},
+    )
+    assert same_site.status_code == 303
     assert submit(alice).status_code == 303
     with services.engine.connect() as conn:
         assert len(conn.execute(select(tasks)).all()) == 1
