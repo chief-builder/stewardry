@@ -1,6 +1,6 @@
 # Threat model
 
-Status: updated for Milestone 1, S15 connected verification, 2026-10-12. Each milestone
+Status: updated for Milestone 1, S16 preparation (brief, retention, shadow harness), 2026-10-13. Each milestone
 step that adds behavior updates this file in the same pull request.
 
 This document states what Stewardry protects, where its trust boundaries
@@ -87,6 +87,7 @@ flowchart LR
 | Audit tampering | Append-only triggers, an insert trigger that only accepts the next link, a hash chain, and anchors. `stewardry audit verify` detects edits, deletions, reordering, and insertions; truncation and full rewrites are detected only against an anchor | S2 |
 | Runaway cost | Enforced in the model boundary before each call: model calls and USD per run (the stricter of the bound and current versions) and USD per UTC day. Retries are bounded (3 attempts). A response without usage stops the run, because its cost cannot be bounded | S6 |
 | A replay mistaken for live evidence, or a live call made during replay | The transport must match the run's provenance. Replay serves recordings only, and a missing recording fails the run. The replay guard refuses to start while credentials are configured (environment variables, or `ant` profile credentials stored on disk, counted but never read) and blocks the network | S6 |
+| Shadow-run data read off the operator's disk | The run's database, uploads, and redacted model recordings stay under the git-ignored `build/shadow/`. Committed reports carry no tokens, account IDs, or email addresses. On-disk access is the local OS user's ([retention](docs/retention.md)) | S16 |
 | A model or prompt change slipping into a running run | Model settings come from the run's bound version. A different current version stops the run | S6 |
 | Supply-chain compromise | Hash-locked dependencies, 14-day cooldown, SHA-pinned actions, digest-pinned images, pip-audit, CodeQL, zizmor, actionlint | S0 |
 

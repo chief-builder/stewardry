@@ -260,6 +260,37 @@ Do this after sections 1–7 and your go-ahead.
      make test-connected PYTEST_ARGS='-k "sign_in or jira"'
    ```
 
+## 10. The first shadow run (S16)
+
+Do this after grading the eval items and after the
+[brief](brief.md) is merged. It uses the live model (about $1.15 expected,
+capped at $5) and the real stack. Keep the stack up from the S15 session.
+
+1. **Manual completion, timed.**
+   1. Copy `fixtures/questionnaires/QN-LARKSPUR-02.xlsx` to
+      `build/shadow/manual-QN-LARKSPUR-02.xlsx`.
+   2. Fill in the Answer column (D) from the SECPOL pages in Confluence,
+      read as GRC Persona.
+   3. Time your active minutes. Don't open the golden answers.
+2. **Settings.** Use the same shell settings as section 9. The Anthropic API
+   credentials from the live eval must also be available (never printed).
+3. **Run `make shadow-run`.** It starts Stewardry on `http://localhost:8700`
+   and prompts you as it goes:
+   1. Sign in as alice and bob, each in its own private window.
+   2. As alice, submit a request: customer `larkspur-synthetic`, Jira issue
+      `SQR-1`. Then upload `fixtures/questionnaires/QN-LARKSPUR-02.xlsx` on
+      its page.
+   3. As bob, authorize drafting. Stewardry drafts all 30 questions, which
+      takes a few minutes.
+   4. As bob, open the review page it prints. Record a verdict on every
+      draft, timing your active minutes.
+   5. Enter your manual and review minutes when asked.
+4. **Results.**
+   - **Committed after review:** the report, labeled `connected`, and the
+     side-by-side comparison, in `docs/connected/<date>-shadow/`.
+   - **Kept locally:** the database, the uploads, and the redacted model
+     recordings, in `build/shadow/<date>/` ([retention](retention.md)).
+
 ## Sign-off
 
 | Item | Done | Date | Notes |

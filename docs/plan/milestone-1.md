@@ -383,7 +383,9 @@ the web routes on top of S4a.
 
 ## Before the first connected session (spec 4.5 and 4.6)
 
-Write these down before S16. They are documents, not code:
+Write these down before S16. They are documents, not code. Recorded on
+2026-10-13 in the [engagement brief](../brief.md) and
+[retention.md](../retention.md):
 
 - retention periods and deletion behavior;
 - operating windows;
