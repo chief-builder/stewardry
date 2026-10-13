@@ -95,7 +95,8 @@ Milestone 1 is in progress. Done so far:
 - **S15 (connected run, 2026-10-12):** one person operating every role ran
   the harness against a synthetic Atlassian site. All eight checks ran:
   - distinct accounts per persona;
-  - the Jira read, partial: only `summary` came back;
+  - the Jira read, partial at first: only `summary` came back. A rerun with
+    the full view returned `reporter` and `created` too;
   - a full page read with version and hash;
   - a restricted page denied by Atlassian and by Stewardry;
   - an expert edit detected;

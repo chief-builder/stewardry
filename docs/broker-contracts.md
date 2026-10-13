@@ -144,7 +144,7 @@ connected verification before connected access is claimed.
 | G3 | Add per-agent policy in Stewardry, with a Stewardry-only gateway instance as later hardening. A gateway-side per-client policy is an upstream proposal only. | [ADR 0009](adr/0009-per-agent-policy.md), [proposals](proposals/broker-upstream-proposals.md) |
 | G4 | Detect consent only from the structured elicitation. Classify other errors with a pinned template catalog, failing closed. A structured error code is an upstream proposal only. | [ADR 0010](adr/0010-gateway-error-classification.md) |
 | G6 | Keep reviewer credentials in memory only, and pause drafting when they lapse. | ADR 0006 |
-| G7, G8, G11 | Verified on the real site in S15. G7 stays open for Jira fields and page listing. | [Observed on the real Atlassian site](#observed-on-the-real-atlassian-site-s15-2026-10-12) |
+| G7, G8, G11 | Verified on the real site in S15. G7 stays open for page listing only. | [Observed on the real Atlassian site](#observed-on-the-real-atlassian-site-s15-2026-10-12) |
 | G5, G9, G10, G12 | Unchanged: application work or setup verification, as described below. | |
 
 | ID | Gap | Why it matters to the spec | Options (owner decides) |
@@ -238,10 +238,12 @@ checked offline by `tests/unit/test_atlassian_rovo_shapes.py`.
   which ADR 0010's catalog classifies as `unavailable`.
 - **Disconnect:** `disconnect_atlassian` revoked the token at Atlassian and
   deleted the broker's copy. The next Connect produced a fresh consent link.
-- **Still open: Jira fields.** `getJiraIssue` with
-  `fields: [created, reporter, summary]` and `fieldsByKeys: true` returned
-  only `summary`. The tool's default `view` is `compact`, which may trim the
-  fields. This has not been tested. The site also has no `customer`
+- **Jira fields:** `getJiraIssue` with `fields: [created, reporter, summary]`
+  and `fieldsByKeys: true` returned only `summary` under the default
+  `view: compact`. With `view: "full"` (a rerun of that check the same day,
+  also connected), all three came back. `reporter` arrives as a full Jira
+  user object that includes the person's email address and account ID.
+  The adapter keeps only its `displayName`. The site has no `customer`
   field, so that policy field reads as empty until one is mapped
   (`STEWARDRY_JIRA_CUSTOMER_FIELD`).
 - **Not yet observed:** `searchConfluence` (page listing). Its shape stays an

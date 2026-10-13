@@ -26,7 +26,12 @@ part of the harness output.
 - **The Jira check passed, but only partly.** `getJiraIssue` was asked for
   `created`, `reporter`, and `summary` (by key). Only `summary` came back. The
   site has no `customer` field, so it was not requested. The harness has
-  since been changed to report this case as "partial", not "pass". See
+  since been changed to report this case as "partial", not "pass". A rerun
+  of this one check, the same day and also connected, asked for
+  `view: "full"`. `summary`, `reporter`, and `created` came back. Only
+  `customer` was missing, as expected. That rerun's raw output stays out of
+  the repo because it holds the reporter's email address; the adapter now
+  keeps only the display name. See
   [broker-contracts.md](../../broker-contracts.md#observed-on-the-real-atlassian-site-s15-2026-10-12).
 - **Sanitized for the public repo.** The site's cloud ID, site name, and
   Atlassian account IDs were replaced with placeholders. The placeholders
