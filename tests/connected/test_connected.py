@@ -20,24 +20,15 @@ import hashlib
 import json
 import os
 import subprocess
-import tempfile
-import threading
-import time
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import pytest
-import uvicorn
-import yaml
 
-from stewardry.platform import registry
-from stewardry.platform.access import apply_access_mapping, load_access_mapping
-from stewardry.platform.artifacts import ArtifactStore
 from stewardry.platform.atlassian.adapter import (
     AtlassianReads,
-    AtlassianSettings,
     ConnectRefused,
 )
 from stewardry.platform.atlassian.client import (
@@ -51,8 +42,6 @@ from stewardry.platform.atlassian.mcp_client import McpGatewayClient
 from stewardry.platform.audit import AuditLog, verify
 from stewardry.platform.catalog import Catalogs
 from stewardry.platform.credentials import CredentialStore, GatewayCredential
-from stewardry.platform.db import migrate
-from stewardry.platform.db.engine import make_engine
 from stewardry.platform.evidence import parse_page
 from stewardry.platform.execution import (
     Executor,
@@ -62,10 +51,8 @@ from stewardry.platform.execution import (
 )
 from stewardry.platform.grants import authorize_stage, submit_task
 from stewardry.platform.policy import load_agent_policy, load_baseline
-from stewardry.web.app import Services, create_app
-from stewardry.web.hub import HubClient, HubError
-from stewardry.web.sessions import SessionStore
 from stewardry.web.settings import WebSettings
+from tests.connected.live_app import ROOT, LiveApp, ask, broker_revision, live_app, say
 
 pytestmark = [
     pytest.mark.connected,
@@ -75,16 +62,7 @@ pytestmark = [
     ),
 ]
 
-ROOT = Path(__file__).resolve().parents[2]
-CONFIG = ROOT / "deploy/connected/connected.yaml"
-MAPPING = ROOT / "deploy/hub/proposed-access-mapping.yaml"
 BROKER = Path(os.environ.get("STEWARDRY_BROKER_CHECKOUT", ROOT.parent / "vendor-token-broker"))
-APP = "http://localhost:8700"
-WAIT_FOR_PEOPLE = dt.timedelta(minutes=30)
-
-
-def _say(text: str) -> None:
-    print(f"\n>>> {text}", flush=True)
 
 
 def _redact_link(text: str) -> str:
@@ -144,6 +122,7 @@ class Session:
     engine: Any
     log: AuditLog
     catalogs: Catalogs
+    app: LiveApp
 
     def credential(self, role: str) -> GatewayCredential:
         found = self.credentials.get(self.subjects[role], dt.datetime.now(dt.UTC))
@@ -157,89 +136,11 @@ class Session:
 
 @pytest.fixture(scope="module")
 def session() -> Iterator[Session]:
-    config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
-    settings = WebSettings.from_environment()
-    mapping = load_access_mapping(MAPPING)
-    by_name = {u.username: u for u in mapping.users}
-    subjects = {role: by_name[name].sub for role, name in config["personas"].items()}
-    platform = next(u.sub for u in mapping.users if "platform_engineer" in u.roles)
-    owner = next(u.sub for u in mapping.users if "engagement_owner" in u.roles)
+    recorder = Recorder(McpGatewayClient(""))  # the real client is set by live_app
 
-    tmp = Path(tempfile.mkdtemp(prefix="stewardry-connected-"))
-    engine = make_engine(tmp / "db.sqlite")
-    migrate.upgrade(engine)
-    log = AuditLog()
-    apply_access_mapping(engine, log, platform, mapping, bootstrap=True)
-    registry.apply_policy(
-        engine,
-        log,
-        platform,
-        load_agent_policy(ROOT / "policies/agents/questionnaire-agent.yaml"),
-        load_baseline(ROOT / "policies/platform-baseline.yaml"),
-    )
-    registry.transition_status(engine, log, owner, "questionnaire-agent", "build", "docs/brief.md")
-
-    field_keys = (
-        {"customer": config["jira"]["customer_field"]}
-        if config["jira"].get("customer_field")
-        else {}
-    )
-    recorder = Recorder(McpGatewayClient(settings.gateway_url))
-    reads = AtlassianReads(
-        recorder, AtlassianSettings(config["cloud_id"], settings.consent_url_prefix, field_keys)
-    )
-    credentials = CredentialStore()
-    import httpx2
-
-    http = httpx2.Client(timeout=30)
-    hub = HubClient(
-        settings.hub_issuer,
-        settings.hub_client_id,
-        settings.hub_client_secret,
-        settings.redirect_uri,
-        http,
-        settings.hub_scope,
-    )
-    services = Services(
-        settings,
-        engine,
-        hub,
-        log,
-        SessionStore(),
-        credentials,
-        ArtifactStore(tmp / "artifacts"),
-        reads,
-    )
-    stop = threading.Event()
-
-    def keep_fresh() -> None:
-        """Renew each persona's credential before it lapses, as the web app does on
-        each request. People sign in one at a time, so a browser that has been
-        closed would otherwise let its 5-minute hub token expire mid-run."""
-        while not stop.wait(30):
-            now = dt.datetime.now(dt.UTC)
-            for sub in subjects.values():
-                for sid in credentials.sessions_of(sub):
-                    token = credentials.needs_refresh(sid, now, dt.timedelta(minutes=2))
-                    if token is None:
-                        continue
-                    try:
-                        renewed = hub.refresh(token)
-                    except HubError:
-                        continue  # the hub session ended; that person signs in again
-                    credentials.put(
-                        sid,
-                        sub,
-                        GatewayCredential(renewed.access_token, renewed.expires_at),
-                        renewed.refresh_token or token,
-                    )
-
-    threading.Thread(target=keep_fresh, daemon=True).start()
-    server = uvicorn.Server(
-        uvicorn.Config(create_app(services), host="127.0.0.1", port=8700, log_level="warning")
-    )
-    thread = threading.Thread(target=server.run, daemon=True)
-    thread.start()
+    def wrap(client: McpGatewayClient) -> Recorder:
+        recorder.inner = client
+        return recorder
 
     today = dt.date.today().isoformat()
     out = Path(os.environ.get("STEWARDRY_CONNECTED_OUT", ROOT / "docs" / "connected" / today))
@@ -247,22 +148,27 @@ def session() -> Iterator[Session]:
     report: dict[str, Any] = {
         "provenance": "connected",
         "date": today,
-        "broker_revision": subprocess.run(  # noqa: S603
-            ["git", "-C", str(BROKER), "rev-parse", "HEAD"],  # noqa: S607
-            capture_output=True,
-            text=True,
-            check=False,
-        ).stdout.strip(),
+        "broker_revision": broker_revision(BROKER),
         "participants": "1 person operating every role",
         "checks": {},
     }
-    catalogs = Catalogs(ROOT, {"policies/catalogs/secpol.yaml": ROOT / config["catalog_file"]})
-    yield Session(
-        settings, config, credentials, subjects, recorder, reads, report, out, engine, log, catalogs
-    )
-
-    with engine.connect() as conn:
-        result = verify(conn)
+    with live_app(wrap) as app:
+        yield Session(
+            app.settings,
+            app.config,
+            app.credentials,
+            app.subjects,
+            recorder,
+            app.reads,
+            report,
+            out,
+            app.engine,
+            app.log,
+            app.catalogs,
+            app,
+        )
+        with app.engine.connect() as conn:
+            result = verify(conn)
     report["audit_chain"] = {"ok": result.ok, "events": result.events, "head_seq": result.head_seq}
     (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True, default=str))
     (out / "responses.json").write_text(
@@ -278,42 +184,6 @@ def session() -> Iterator[Session]:
     ]
     lines += [f"| {k} | {v.get('result', v)} |" for k, v in report["checks"].items()]
     (out / "report.md").write_text("\n".join(lines) + "\n")
-    stop.set()
-    server.should_exit = True
-    thread.join(timeout=10)
-    http.close()
-    engine.dispose()
-
-
-def _wait_until_connected(s: Session, roles: list[str]) -> None:
-    names = ", ".join(f"{s.config['personas'][r]} ({r})" for r in roles)
-    _say(
-        f"Sign in at {APP} as each of: {names}. Use a separate private browser window for "
-        "each person. In each window, click 'Connect Atlassian' and approve with that "
-        "person's own Atlassian account. Waiting..."
-    )
-    deadline = dt.datetime.now(dt.UTC) + WAIT_FOR_PEOPLE
-    pending = set(roles)
-    while pending and dt.datetime.now(dt.UTC) < deadline:
-        for role in sorted(pending):
-            cred = s.credentials.get(s.subjects[role], dt.datetime.now(dt.UTC))
-            if cred is None:
-                continue
-            # Any successful call means the person is connected. What the response
-            # contains is checked (and recorded) by the account-mapping check.
-            outcome = s.recorder.inner.call_tool(
-                cred, "atlassian_atlassianUserInfo", {}, interactive=False
-            )
-            if isinstance(outcome, ToolSuccess):
-                _say(f"{role} is signed in and connected.")
-                pending.discard(role)
-        time.sleep(15)
-    assert not pending, f"not connected in time: {sorted(pending)}"
-
-
-def _ask(question: str) -> str:
-    _say(question)
-    return input("> ").strip()
 
 
 # ------------------------------------------------------------------ checks
@@ -321,7 +191,7 @@ def _ask(question: str) -> str:
 
 def test_people_sign_in_and_connect(session: Session) -> None:
     roles = os.environ.get("STEWARDRY_CONNECTED_ROLES", "sales,grc,legal").split(",")
-    _wait_until_connected(session, roles)
+    session.app.wait_until_connected(roles)
 
 
 def test_sites_and_distinct_accounts(session: Session) -> None:
@@ -333,7 +203,7 @@ def test_sites_and_distinct_accounts(session: Session) -> None:
     for role, account in accounts.items():
         if account is None:  # show the real response shape (G11) to fix the parser
             raw = [c for c in session.recorder.calls if c["persona"] == role][-2]["response"]
-            _say(
+            say(
                 f"{role}: no account ID found in atlassianUserInfo's response: "
                 f"{json.dumps(raw, default=str)[:600]}"
             )
@@ -426,7 +296,7 @@ def test_an_expert_edit_changes_version_and_hash(session: Session) -> None:
     page_id = session.config["pages"]["edited"]
     grc = session.as_("grc")
     before = grc.confluence_read_page(session.credential("grc"), page_id)
-    _ask(
+    ask(
         "As the expert's Atlassian account (never connected to Stewardry), edit the page "
         f"{page_id} in Confluence's UI: change one passage's wording and publish. "
         "Press Enter when it is saved."
@@ -445,7 +315,7 @@ def test_an_expert_edit_changes_version_and_hash(session: Session) -> None:
 
 
 def test_outages_are_not_consent(session: Session) -> None:
-    answer = _ask(
+    answer = ask(
         "Pause the broker for a few seconds to check outage handling? "
         "(docker pause keeps its memory, so connections survive) [y/N]"
     )
@@ -468,7 +338,7 @@ def test_outages_are_not_consent(session: Session) -> None:
 
 
 def test_disconnect_then_consent_again(session: Session) -> None:
-    answer = _ask(
+    answer = ask(
         "Disconnect the Legal persona's Atlassian connection to check that consent is "
         "needed again? (Legal reconnects later through Connect Atlassian) [y/N]"
     )
