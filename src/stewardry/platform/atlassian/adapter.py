@@ -200,6 +200,9 @@ class AtlassianReads:
                 "issueIdOrKey": issue_key,
                 "fields": sorted(set(keys.values())),
                 "fieldsByKeys": True,
+                # The default "compact" view returned only `summary` on the real
+                # site (S15). `fields` still limits what Jira fetches.
+                "view": "full",
                 "responseContentFormat": "markdown",
             },
         )

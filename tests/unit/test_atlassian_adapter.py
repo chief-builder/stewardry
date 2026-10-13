@@ -125,6 +125,7 @@ def test_jira_reads_only_allow_listed_fields() -> None:
         "issueIdOrKey": "SQR-1",
         "fields": ["customfield_10042", "summary"],
         "fieldsByKeys": True,
+        "view": "full",
         "responseContentFormat": "markdown",
     }
     assert "internal notes" not in json.dumps(result) and "secret.pdf" not in json.dumps(result)
