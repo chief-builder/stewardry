@@ -56,7 +56,6 @@ from stewardry.platform.db.engine import make_engine
 from stewardry.platform.evidence import parse_page
 from stewardry.platform.execution import (
     Executor,
-    HandlerStop,
     OperationRefused,
     RunStopped,
     ToolCall,
@@ -300,11 +299,12 @@ def _wait_until_connected(s: Session, roles: list[str]) -> None:
             cred = s.credentials.get(s.subjects[role], dt.datetime.now(dt.UTC))
             if cred is None:
                 continue
-            try:
-                connected = s.as_(role).account_id(cred) is not None
-            except HandlerStop, OperationRefused:
-                connected = False  # not connected yet (or Atlassian refused): keep waiting
-            if connected:
+            # Any successful call means the person is connected. What the response
+            # contains is checked (and recorded) by the account-mapping check.
+            outcome = s.recorder.inner.call_tool(
+                cred, "atlassian_atlassianUserInfo", {}, interactive=False
+            )
+            if isinstance(outcome, ToolSuccess):
                 _say(f"{role} is signed in and connected.")
                 pending.discard(role)
         time.sleep(15)
@@ -329,7 +329,14 @@ def test_sites_and_distinct_accounts(session: Session) -> None:
         cred = session.credential(role)
         accounts[role] = session.as_(role).account_id(cred)
         sites[role] = sorted(session.as_(role).accessible_site_ids(cred))
-    distinct = len(set(accounts.values())) == len(accounts)
+    for role, account in accounts.items():
+        if account is None:  # show the real response shape (G11) to fix the parser
+            raw = [c for c in session.recorder.calls if c["persona"] == role][-2]["response"]
+            _say(
+                f"{role}: no account ID found in atlassianUserInfo's response: "
+                f"{json.dumps(raw, default=str)[:600]}"
+            )
+    distinct = None not in accounts.values() and len(set(accounts.values())) == len(accounts)
     on_site = all(session.config["cloud_id"] in v for v in sites.values())
     session.report["checks"]["site and account mapping"] = {
         "result": "pass" if distinct and on_site else "FAIL",
