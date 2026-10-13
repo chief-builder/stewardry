@@ -5,6 +5,7 @@ IDs. It limits what may be read; the page itself is the authority for status,
 dates, and content (`platform/evidence.py`).
 """
 
+from collections.abc import Mapping
 from functools import cache
 from pathlib import Path
 from typing import Literal
@@ -49,13 +50,20 @@ def load_catalog(path: Path) -> Catalog:
 
 class Catalogs:
     """Resolves the catalog references in policies (repo-relative paths)
-    against a root directory. Callable as the executor's `CatalogLookup`."""
+    against a root directory. Callable as the executor's `CatalogLookup`.
 
-    def __init__(self, root: Path) -> None:
+    `site` maps a policy's catalog reference to a site catalog: the same
+    policies with one Confluence site's real page IDs (connected runs). The
+    repository's catalogs keep the synthetic IDs that offline tests use."""
+
+    def __init__(self, root: Path, site: Mapping[str, Path] | None = None) -> None:
         self.root = root.resolve()
+        self.site = dict(site or {})
 
     @cache  # noqa: B019 - one instance per process; catalogs are small
     def get(self, ref: str) -> Catalog:
+        if ref in self.site:
+            return load_catalog(self.site[ref])
         path = (self.root / ref).resolve()
         if not path.is_relative_to(self.root / "policies" / "catalogs"):
             raise ValueError(f"catalog reference {ref!r} is outside policies/catalogs")

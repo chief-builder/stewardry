@@ -10,6 +10,8 @@ personas:
 jira:
   request_key: SQR-1            # a synthetic request Sales can read
   customer_field: ""            # e.g. customfield_10042, if the request carries one
+# The site's page IDs for the policy catalog (checked in; IDs only).
+catalog_file: deploy/connected/secpol.site.yaml
 pages:                           # Confluence page IDs, from each page's URL
   readable: replace-with-SEC-05-page-id      # GRC reads it in full
   restricted: replace-with-SEC-04-page-id    # GRC-only; Sales must be denied

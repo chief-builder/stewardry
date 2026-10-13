@@ -144,6 +144,7 @@ class Session:
     out: Path
     engine: Any
     log: AuditLog
+    catalogs: Catalogs
 
     def credential(self, role: str) -> GatewayCredential:
         found = self.credentials.get(self.subjects[role], dt.datetime.now(dt.UTC))
@@ -231,8 +232,9 @@ def session() -> Iterator[Session]:
         "participants": "1 person operating every role",
         "checks": {},
     }
+    catalogs = Catalogs(ROOT, {"policies/catalogs/secpol.yaml": ROOT / config["catalog_file"]})
     yield Session(
-        settings, config, credentials, subjects, recorder, reads, report, out, engine, log
+        settings, config, credentials, subjects, recorder, reads, report, out, engine, log, catalogs
     )
 
     with engine.connect() as conn:
@@ -353,7 +355,7 @@ def test_a_restricted_page_is_denied_to_sales_twice(session: Session) -> None:
         session.subjects["sales"],
         GatewayCredential(session.credential("sales").access_token, later),
     )
-    catalogs = Catalogs(ROOT)
+    catalogs = session.catalogs
     executor = Executor(
         session.engine,
         session.log,
@@ -453,7 +455,7 @@ def test_a_background_run_never_falls_back_to_another_identity(session: Session)
     """GRC runs a drafting read; with GRC's credential removed, the run pauses
     instead of using anyone else's."""
     store = CredentialStore()
-    catalogs = Catalogs(ROOT)
+    catalogs = session.catalogs
     executor = Executor(
         session.engine,
         session.log,

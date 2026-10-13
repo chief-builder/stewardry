@@ -3,7 +3,7 @@ schema_version: 1
 catalog: secpol
 space: SECPOL
 description: Synthetic security policies the questionnaire agent may read (agent-visible). Page IDs are
-  the synthetic Confluence page IDs; real IDs are recorded at setup (S15).
+  the synthetic Confluence page IDs; a connected site has its own (deploy/connected/secpol.site.yaml).
 pages:
 - page_id: '101'
   policy_id: SEC-01
