@@ -64,7 +64,7 @@ from stewardry.platform.execution import (
 from stewardry.platform.grants import authorize_stage, submit_task
 from stewardry.platform.policy import load_agent_policy, load_baseline
 from stewardry.web.app import Services, create_app
-from stewardry.web.hub import HubClient
+from stewardry.web.hub import HubClient, HubError
 from stewardry.web.sessions import SessionStore
 from stewardry.web.settings import WebSettings
 
@@ -211,6 +211,31 @@ def session() -> Iterator[Session]:
         ArtifactStore(tmp / "artifacts"),
         reads,
     )
+    stop = threading.Event()
+
+    def keep_fresh() -> None:
+        """Renew each persona's credential before it lapses, as the web app does on
+        each request. People sign in one at a time, so a browser that has been
+        closed would otherwise let its 5-minute hub token expire mid-run."""
+        while not stop.wait(30):
+            now = dt.datetime.now(dt.UTC)
+            for sub in subjects.values():
+                for sid in credentials.sessions_of(sub):
+                    token = credentials.needs_refresh(sid, now, dt.timedelta(minutes=2))
+                    if token is None:
+                        continue
+                    try:
+                        renewed = hub.refresh(token)
+                    except HubError:
+                        continue  # the hub session ended; that person signs in again
+                    credentials.put(
+                        sid,
+                        sub,
+                        GatewayCredential(renewed.access_token, renewed.expires_at),
+                        renewed.refresh_token or token,
+                    )
+
+    threading.Thread(target=keep_fresh, daemon=True).start()
     server = uvicorn.Server(
         uvicorn.Config(create_app(services), host="127.0.0.1", port=8700, log_level="warning")
     )
@@ -254,6 +279,7 @@ def session() -> Iterator[Session]:
     ]
     lines += [f"| {k} | {v.get('result', v)} |" for k, v in report["checks"].items()]
     (out / "report.md").write_text("\n".join(lines) + "\n")
+    stop.set()
     server.should_exit = True
     thread.join(timeout=10)
     http.close()
@@ -281,7 +307,7 @@ def _wait_until_connected(s: Session, roles: list[str]) -> None:
             if connected:
                 _say(f"{role} is signed in and connected.")
                 pending.discard(role)
-        time.sleep(5)
+        time.sleep(15)
     assert not pending, f"not connected in time: {sorted(pending)}"
 
 
