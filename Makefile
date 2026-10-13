@@ -5,7 +5,7 @@
 UV ?= uv
 RUN = $(UV) run --frozen
 
-.PHONY: help install lint format typecheck test docs secrets workflows actionlint check fixtures build test-live-model record-drafting eval-live eval-replay test-stack confluence-pages test-connected pinned-links vendored audit lock
+.PHONY: help install lint format typecheck test docs secrets workflows actionlint check fixtures build test-live-model record-drafting eval-live eval-replay test-stack confluence-pages test-connected shadow-run pinned-links vendored audit lock
 
 help:  ## List targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/'
@@ -71,6 +71,9 @@ confluence-pages: install  ## Render the synthetic policies as Confluence pages 
 
 test-connected: install  ## Connected verification (S15): real stack, people in browsers; writes docs/connected/<date>/
 	STEWARDRY_CONNECTED=1 $(RUN) pytest -m connected --no-cov -s --tb=short tests/connected $(PYTEST_ARGS)
+
+shadow-run: install  ## Connected shadow run (S16): real stack, live model (costs money), people in browsers
+	STEWARDRY_CONNECTED=1 STEWARDRY_LIVE_MODEL=1 $(RUN) pytest -m connected --no-cov -s --tb=short tests/connected/test_shadow_run.py
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py
