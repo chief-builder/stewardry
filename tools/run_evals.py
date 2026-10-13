@@ -59,7 +59,6 @@ from stewardry.platform.replay import RecordingTransport, ReplayStore, ReplayTra
 from tests.fakes.drafting_setup import make_setup
 from tests.fakes.drafting_smoke import QUESTIONS as SMOKE_QUESTIONS
 from tests.fakes.drafting_smoke import smoke_questionnaire
-from tests.fakes.policy_pages import POLICIES
 from tests.fakes.scripted_model import ScriptedModel
 from tests.unit.conftest import LARKSPUR, QUILLON, mapping_data, populate
 from tools.eval_report import (
@@ -74,6 +73,7 @@ from tools.eval_report import (
     render_markdown,
     sha256_of,
 )
+from tools.render_policy_pages import POLICIES
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET = ROOT / "evals" / "datasets" / "questionnaire-v1.yaml"

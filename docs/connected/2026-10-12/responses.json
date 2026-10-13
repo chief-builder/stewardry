@@ -1,0 +1,171 @@
+[
+  {
+    "arguments": {},
+    "persona": "sales",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"accountId\":\"712020:00000000-0000-4000-8000-000000000001\"}}",
+      "type": "success"
+    },
+    "tool": "atlassian_atlassianUserInfo"
+  },
+  {
+    "arguments": {},
+    "persona": "sales",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"resources\":[{\"cloudId\":\"11111111-2222-4333-8444-555555555555\",\"url\":\"https://example-site.atlassian.net\",\"products\":[{\"id\":\"jira\",\"access\":\"read-only\"},{\"id\":\"confluence\",\"access\":\"read-only\"}]}]}}",
+      "type": "success"
+    },
+    "tool": "atlassian_getAccessibleAtlassianResources"
+  },
+  {
+    "arguments": {},
+    "persona": "grc",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"accountId\":\"712020:00000000-0000-4000-8000-000000000002\"}}",
+      "type": "success"
+    },
+    "tool": "atlassian_atlassianUserInfo"
+  },
+  {
+    "arguments": {},
+    "persona": "grc",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"resources\":[{\"cloudId\":\"11111111-2222-4333-8444-555555555555\",\"url\":\"https://example-site.atlassian.net\",\"products\":[{\"id\":\"jira\",\"access\":\"read-only\"},{\"id\":\"confluence\",\"access\":\"read-only\"}]}]}}",
+      "type": "success"
+    },
+    "tool": "atlassian_getAccessibleAtlassianResources"
+  },
+  {
+    "arguments": {},
+    "persona": "legal",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"accountId\":\"712020:00000000-0000-4000-8000-000000000003\"}}",
+      "type": "success"
+    },
+    "tool": "atlassian_atlassianUserInfo"
+  },
+  {
+    "arguments": {},
+    "persona": "legal",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"resources\":[{\"cloudId\":\"11111111-2222-4333-8444-555555555555\",\"url\":\"https://example-site.atlassian.net\",\"products\":[{\"id\":\"jira\",\"access\":\"read-only\"},{\"id\":\"confluence\",\"access\":\"read-only\"}]}]}}",
+      "type": "success"
+    },
+    "tool": "atlassian_getAccessibleAtlassianResources"
+  },
+  {
+    "arguments": {
+      "cloudId": "11111111-2222-4333-8444-555555555555",
+      "fields": [
+        "created",
+        "reporter",
+        "summary"
+      ],
+      "fieldsByKeys": true,
+      "issueIdOrKey": "SQR-1",
+      "responseContentFormat": "markdown"
+    },
+    "persona": "sales",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"appliedContentFormat\":\"markdown\",\"id\":\"10036\",\"key\":\"SQR-1\",\"fields\":{\"summary\":\"Security questionnaire for Larkspur Analytics (synthetic)\"}}}",
+      "type": "success"
+    },
+    "tool": "atlassian_getJiraIssue"
+  },
+  {
+    "arguments": {
+      "cloudId": "11111111-2222-4333-8444-555555555555",
+      "content_format": "html",
+      "content_id": "622760",
+      "detail": "full"
+    },
+    "persona": "grc",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"id\":\"622760\",\"type\":\"page\",\"title\":\"SEC-05 Encryption and Key Management\",\"status\":\"current\",\"spaceId\":\"753669\",\"snapshotToken\":\"v:1\",\"detail\":\"full\",\"body\":{\"format\":\"html\",\"value\":\"<h1 data-local-id=\\\"ae29f6393594\\\">SEC-05 Encryption and Key Management</h1><table data-local-id=\\\"0420104f-0ed0-46a5-8dc2-d73f005aee0a\\\" data-width=\\\"760\\\"><thead><tr data-local-id=\\\"9b313a90-6273-4dfa-8e3b-8bf32a39327d\\\"><th data-local-id=\\\"18a4b012-fd29-4221-a0e3-56d21bf14948\\\"><p data-local-id=\\\"bad88544a46a\\\">Policy ID</p></th><td data-local-id=\\\"0d5b9297-54c7-48ba-976c-3d7c3048338e\\\"><p data-local-id=\\\"02c592c51d77\\\">SEC-05</p></td></tr></thead><tbody><tr data-local-id=\\\"30ed634c-d608-4760-a9b8-0065e8496123\\\"><th data-local-id=\\\"6b23f874-f552-4d11-a5e6-079a803d6100\\\"><p data-local-id=\\\"64f4fe3938c9\\\">Version</p></th><td data-local-id=\\\"9280067e-6541-4a4f-a870-0edec0f10b9d\\\"><p data-local-id=\\\"58f5a5e78377\\\">3</p></td></tr><tr data-local-id=\\\"2859a4db-65b2-4c15-a419-6c31db03d269\\\"><th data-local-id=\\\"070f6d45-a32d-4ea9-bb13-839ac2951a64\\\"><p data-local-id=\\\"135116fccc75\\\">Status</p></th><td data-local-id=\\\"4719eb2d-d05d-46e1-99ca-124f1d61dd31\\\"><p data-local-id=\\\"a672baa9e2d2\\\">current</p></td></tr><tr data-local-id=\\\"ce027669-c7d5-4aba-85d6-c2a81639719d\\\"><th data-local-id=\\\"863320b8-9ab4-4739-a154-7438fb378de5\\\"><p data-local-id=\\\"e1078ec033d0\\\">Classification</p></th><td data-local-id=\\\"ecaf0a34-b260-4ce6-82d5-9347cf61988c\\\"><p data-local-id=\\\"a463f7d79138\\\">internal</p></td></tr><tr data-local-id=\\\"36d9971e-65b1-4075-a93a-4cf9e5376aa7\\\"><th data-local-id=\\\"f2e44bc5-55f2-4631-91c2-5b9ff92dfffa\\\"><p data-local-id=\\\"26dc87903fd6\\\">Owner</p></th><td data-local-id=\\\"37a758eb-60a0-414f-92cd-70091e734a84\\\"><p data-local-id=\\\"ee75af5a27a4\\\">Security Engineering Lead</p></td></tr><tr data-local-id=\\\"274662c8-597b-4434-b2bb-70d5c2578c91\\\"><th data-local-id=\\\"2ce2baaf-7bae-4130-b9ba-5d235764efdf\\\"><p data-local-id=\\\"c465ca100fc3\\\">Effective date</p></th><td data-local-id=\\\"5a942b47-a271-4942-afc0-f909a871e273\\\"><p data-local-id=\\\"69d840416342\\\">2026-08-15</p></td></tr><tr data-local-id=\\\"a8bad1e0-b88f-4883-a85d-47a84e4a1e96\\\"><th data-local-id=\\\"08bc9272-3d5c-4ed4-b647-99896be4e993\\\"><p data-local-id=\\\"fc6cfa2174e2\\\">Review date</p></th><td data-local-id=\\\"5991a712-95fa-47d5-a3cb-56ff1ecf331c\\\"><p data-local-id=\\\"e976eca394e1\\\">2027-08-15</p></td></tr></tbody></table><h2 data-local-id=\\\"8d02ad6e99cb\\\">Encryption</h2><p data-local-id=\\\"c47fd20a42ad\\\">5.1 Customer data is encrypted at rest with AES-256 in all production databases, object storage, and backups.</p><p data-local-id=\\\"5ec13b0b6229\\\">5.2 Data in transit over public networks is encrypted with TLS 1.2 or higher. TLS 1.0 and 1.1 are disabled.</p><p data-local-id=\\\"3fedd437d225\\\">5.3 Service-to-service traffic inside the production network is encrypted with mutual TLS.</p><h2 data-local-id=\\\"58726cbc9e9b\\\">Key management</h2><p data-local-id=\\\"7e0f5aa44c9c\\\">5.4 Encryption keys are managed in the cloud provider&#39;s key management service and are rotated at least every 12 months.</p><p data-local-id=\\\"1ecac16c0a23\\\">5.5 Access to key management functions is restricted to the Platform Security team, and every use of a key is logged.</p><p data-local-id=\\\"10837606edab\\\">5.6 Customer-managed encryption keys are not offered.</p>\"},\"metadata\":{\"hasSpaceInstructions\":false,\"totalViews\":4,\"authorId\":\"712020:00000000-0000-4000-8000-000000000004\",\"version\":{\"number\":1,\"createdAt\":\"2026-10-12T17:36:57.781Z\",\"message\":\"\"}}}}",
+      "type": "success"
+    },
+    "tool": "atlassian_getConfluenceContent"
+  },
+  {
+    "arguments": {
+      "cloudId": "11111111-2222-4333-8444-555555555555",
+      "content_format": "html",
+      "content_id": "1638401",
+      "detail": "full"
+    },
+    "persona": "sales",
+    "response": {
+      "text": "{\"error\":true,\"message\":\"getConfluenceContent failed: 404. Details: {\\\"errors\\\":[{\\\"status\\\":404,\\\"code\\\":\\\"NOT_FOUND\\\",\\\"title\\\":\\\"Not Found\\\",\\\"detail\\\":null}]}\",\"statusCode\":404}",
+      "type": "tool_error"
+    },
+    "tool": "atlassian_getConfluenceContent"
+  },
+  {
+    "arguments": {
+      "cloudId": "11111111-2222-4333-8444-555555555555",
+      "content_format": "html",
+      "content_id": "1409029",
+      "detail": "full"
+    },
+    "persona": "grc",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"id\":\"1409029\",\"type\":\"page\",\"title\":\"SEC-07 Data Retention and Disposal\",\"status\":\"current\",\"spaceId\":\"753669\",\"snapshotToken\":\"v:1\",\"detail\":\"full\",\"body\":{\"format\":\"html\",\"value\":\"<h1 data-local-id=\\\"d8bc99a6dec6\\\">SEC-07 Data Retention and Disposal</h1><table data-local-id=\\\"fdeee4cd-16bf-4b13-aff5-8d8fb72779f5\\\" data-width=\\\"760\\\"><thead><tr data-local-id=\\\"ca20737f-f6f0-4bfa-b5f0-cd329f4bde59\\\"><th data-local-id=\\\"fc952669-66ea-4f1a-b3e1-d8d2e6f3b09e\\\"><p data-local-id=\\\"202a6b00999f\\\">Policy ID</p></th><td data-local-id=\\\"194aed0a-bfae-48f4-85e6-7ec8039a00d9\\\"><p data-local-id=\\\"a3e2d906bbed\\\">SEC-07</p></td></tr></thead><tbody><tr data-local-id=\\\"e5329e9c-2569-42c8-a4a5-ea58ef801144\\\"><th data-local-id=\\\"122f2df6-c2e2-41ca-b079-04572a1c982a\\\"><p data-local-id=\\\"7ed37caa421e\\\">Version</p></th><td data-local-id=\\\"bac3689e-1271-4cca-bd59-0c1a7d6176f1\\\"><p data-local-id=\\\"7eb08c106154\\\">2</p></td></tr><tr data-local-id=\\\"55ff8283-c75e-4153-ac79-04f3881f527e\\\"><th data-local-id=\\\"f79895a7-3f2c-413f-8090-d9e35551c358\\\"><p data-local-id=\\\"2149825f4e69\\\">Status</p></th><td data-local-id=\\\"2e2a6ee3-a9bd-4397-8d4e-260534b23ee3\\\"><p data-local-id=\\\"c4191ed31bab\\\">current</p></td></tr><tr data-local-id=\\\"cec4831f-b1e5-4ef5-81d2-ea93796ac497\\\"><th data-local-id=\\\"e84f4587-9efc-4fd7-ad57-871eec256ad1\\\"><p data-local-id=\\\"51bb88230f48\\\">Classification</p></th><td data-local-id=\\\"3385b404-8435-4a8a-91b5-a2944eca20bd\\\"><p data-local-id=\\\"35cbc22e44f1\\\">internal</p></td></tr><tr data-local-id=\\\"82e52e96-3f50-419b-a7d7-699eeb32c833\\\"><th data-local-id=\\\"1968216e-56fa-4e82-9de1-933baafeea27\\\"><p data-local-id=\\\"fabe69245954\\\">Owner</p></th><td data-local-id=\\\"992581bc-6d4a-497d-985e-e030db3b8e51\\\"><p data-local-id=\\\"83bda8469084\\\">Security Engineering Lead</p></td></tr><tr data-local-id=\\\"34a1711e-c91d-4200-990f-af25007f7f9d\\\"><th data-local-id=\\\"c7309741-a8a4-41bc-9964-500323be6d45\\\"><p data-local-id=\\\"ba12d14be2c4\\\">Effective date</p></th><td data-local-id=\\\"7440ab9d-11bf-49c2-92bb-f626b5856d71\\\"><p data-local-id=\\\"ef3fa10ba097\\\">2026-08-01</p></td></tr><tr data-local-id=\\\"95735aef-decf-44fb-b882-9fbbfe784433\\\"><th data-local-id=\\\"bd5d1b7f-7283-466c-80d2-226cf385c07d\\\"><p data-local-id=\\\"912638e23164\\\">Review date</p></th><td data-local-id=\\\"3546e46a-5a8f-4331-b907-a40d1236dc0d\\\"><p data-local-id=\\\"eae23e756282\\\">2027-08-01</p></td></tr></tbody></table><h2 data-local-id=\\\"d3fc943c73de\\\">Retention</h2><p data-local-id=\\\"4861842bdc35\\\">7.1 Customer data is retained for the duration of the contract and deleted within 30 days after the contract ends, unless the customer requests earlier deletion.</p><p data-local-id=\\\"108e935c27ba\\\">7.2 Backups are retained for 35 days and then deleted automatically.</p><p data-local-id=\\\"26b4d97f9997\\\">7.3 Audit logs are retained for 1 year.</p><h2 data-local-id=\\\"a9a019a5bb37\\\">Disposal</h2><p data-local-id=\\\"2b773608b04a\\\">7.4 On request, deletion of customer data from primary systems is confirmed to the customer in writing.</p><p data-local-id=\\\"49f5ba21f5a6\\\">7.5 Decommissioned storage is sanitized through the cloud provider&#39;s media sanitization process. Halcyon Ridge Software operates no physical storage media.</p>\"},\"metadata\":{\"hasSpaceInstructions\":false,\"totalViews\":4,\"authorId\":\"712020:00000000-0000-4000-8000-000000000004\",\"version\":{\"number\":1,\"createdAt\":\"2026-10-12T17:38:54.177Z\",\"message\":\"\"}}}}",
+      "type": "success"
+    },
+    "tool": "atlassian_getConfluenceContent"
+  },
+  {
+    "arguments": {
+      "cloudId": "11111111-2222-4333-8444-555555555555",
+      "content_format": "html",
+      "content_id": "1409029",
+      "detail": "full"
+    },
+    "persona": "grc",
+    "response": {
+      "structured": null,
+      "text": "{\"data\":{\"id\":\"1409029\",\"type\":\"page\",\"title\":\"SEC-07 Data Retention and Disposal\",\"status\":\"current\",\"spaceId\":\"753669\",\"snapshotToken\":\"v:2\",\"detail\":\"full\",\"body\":{\"format\":\"html\",\"value\":\"<h1 data-local-id=\\\"d8bc99a6dec6\\\">SEC-07 Data Retention and Disposal</h1><table data-local-id=\\\"fdeee4cd-16bf-4b13-aff5-8d8fb72779f5\\\" data-width=\\\"760\\\"><thead><tr data-local-id=\\\"ca20737f-f6f0-4bfa-b5f0-cd329f4bde59\\\"><th data-local-id=\\\"fc952669-66ea-4f1a-b3e1-d8d2e6f3b09e\\\"><p data-local-id=\\\"202a6b00999f\\\">Policy ID</p></th><td data-local-id=\\\"194aed0a-bfae-48f4-85e6-7ec8039a00d9\\\"><p data-local-id=\\\"a3e2d906bbed\\\">SEC-07</p></td></tr></thead><tbody><tr data-local-id=\\\"e5329e9c-2569-42c8-a4a5-ea58ef801144\\\"><th data-local-id=\\\"122f2df6-c2e2-41ca-b079-04572a1c982a\\\"><p data-local-id=\\\"7ed37caa421e\\\">Version</p></th><td data-local-id=\\\"bac3689e-1271-4cca-bd59-0c1a7d6176f1\\\"><p data-local-id=\\\"7eb08c106154\\\">2</p></td></tr><tr data-local-id=\\\"55ff8283-c75e-4153-ac79-04f3881f527e\\\"><th data-local-id=\\\"f79895a7-3f2c-413f-8090-d9e35551c358\\\"><p data-local-id=\\\"2149825f4e69\\\">Status</p></th><td data-local-id=\\\"2e2a6ee3-a9bd-4397-8d4e-260534b23ee3\\\"><p data-local-id=\\\"c4191ed31bab\\\">current</p></td></tr><tr data-local-id=\\\"cec4831f-b1e5-4ef5-81d2-ea93796ac497\\\"><th data-local-id=\\\"e84f4587-9efc-4fd7-ad57-871eec256ad1\\\"><p data-local-id=\\\"51bb88230f48\\\">Classification</p></th><td data-local-id=\\\"3385b404-8435-4a8a-91b5-a2944eca20bd\\\"><p data-local-id=\\\"35cbc22e44f1\\\">internal</p></td></tr><tr data-local-id=\\\"82e52e96-3f50-419b-a7d7-699eeb32c833\\\"><th data-local-id=\\\"1968216e-56fa-4e82-9de1-933baafeea27\\\"><p data-local-id=\\\"fabe69245954\\\">Owner</p></th><td data-local-id=\\\"992581bc-6d4a-497d-985e-e030db3b8e51\\\"><p data-local-id=\\\"83bda8469084\\\">Security Engineering Lead</p></td></tr><tr data-local-id=\\\"34a1711e-c91d-4200-990f-af25007f7f9d\\\"><th data-local-id=\\\"c7309741-a8a4-41bc-9964-500323be6d45\\\"><p data-local-id=\\\"ba12d14be2c4\\\">Effective date</p></th><td data-local-id=\\\"7440ab9d-11bf-49c2-92bb-f626b5856d71\\\"><p data-local-id=\\\"ef3fa10ba097\\\">2026-08-01</p></td></tr><tr data-local-id=\\\"95735aef-decf-44fb-b882-9fbbfe784433\\\"><th data-local-id=\\\"bd5d1b7f-7283-466c-80d2-226cf385c07d\\\"><p data-local-id=\\\"912638e23164\\\">Review date</p></th><td data-local-id=\\\"3546e46a-5a8f-4331-b907-a40d1236dc0d\\\"><p data-local-id=\\\"eae23e756282\\\">2027-08-01</p></td></tr></tbody></table><h2 data-local-id=\\\"d3fc943c73de\\\">Retention</h2><p data-local-id=\\\"4861842bdc35\\\">7.1 Customer data is retained for the duration of the contract and deleted within 30 days after the contract ends, unless the customer requests earlier deletion.</p><p data-local-id=\\\"108e935c27ba\\\">7.2 Backups are retained for 35 days and then deleted automatically.</p><p data-local-id=\\\"26b4d97f9997\\\">7.3 Audit logs are kept for one year.</p><h2 data-local-id=\\\"a9a019a5bb37\\\">Disposal</h2><p data-local-id=\\\"2b773608b04a\\\">7.4 On request, deletion of customer data from primary systems is confirmed to the customer in writing.</p><p data-local-id=\\\"49f5ba21f5a6\\\">7.5 Decommissioned storage is sanitized through the cloud provider&#39;s media sanitization process. Halcyon Ridge Software operates no physical storage media.</p>\"},\"metadata\":{\"hasSpaceInstructions\":false,\"totalViews\":6,\"authorId\":\"712020:00000000-0000-4000-8000-000000000004\",\"version\":{\"number\":2,\"createdAt\":\"2026-10-13T03:23:01.547Z\",\"message\":\"\"}}}}",
+      "type": "success"
+    },
+    "tool": "atlassian_getConfluenceContent"
+  },
+  {
+    "arguments": {},
+    "persona": "grc",
+    "response": {
+      "text": "a dependency is unavailable (broker unreachable (ReadTimeout)); retry shortly",
+      "type": "tool_error"
+    },
+    "tool": "atlassian_atlassianUserInfo"
+  },
+  {
+    "arguments": {},
+    "persona": "legal",
+    "response": {
+      "structured": {
+        "result": "Atlassian is disconnected: Atlassian was asked to cancel the token, and the broker deleted its copy. Run connect_atlassian to connect again."
+      },
+      "text": "Atlassian is disconnected: Atlassian was asked to cancel the token, and the broker deleted its copy. Run connect_atlassian to connect again.",
+      "type": "success"
+    },
+    "tool": "disconnect_atlassian"
+  },
+  {
+    "arguments": {},
+    "persona": "legal",
+    "response": {
+      "type": "consent",
+      "url": "http://localhost:8600/v1/authorize/atlassian?txn=[removed]"
+    },
+    "tool": "connect_atlassian"
+  }
+]

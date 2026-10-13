@@ -1,0 +1,75 @@
+{
+  "audit_chain": {
+    "events": 14,
+    "head_seq": 14,
+    "ok": true
+  },
+  "broker_revision": "20d1426622a0c05478c4331b82ad8952411f9a4a",
+  "checks": {
+    "Jira field read as Sales": {
+      "read": {
+        "fields": {
+          "created": null,
+          "customer": null,
+          "reporter": null,
+          "summary": "Security questionnaire for Larkspur Analytics (synthetic)"
+        },
+        "issue_key": "SQR-1"
+      },
+      "result": "pass"
+    },
+    "disconnect then consent": {
+      "result": "pass"
+    },
+    "expert edit detected": {
+      "content_sha256": [
+        "77e751115bb3c6e7a2fad068ae60324dbbf11b1a1b27199a15d99ec3ec4971e7",
+        "3ee1d669db65c03e6fb31baf06ad2abd1afaa2777c2bee6125a98bb924861bff"
+      ],
+      "result": "pass",
+      "version": [
+        1,
+        2
+      ]
+    },
+    "full page read as GRC": {
+      "content_sha256": "d767a437715fda961a4553ab441c6731bdd9cba978a194fe3bd65ba8af082dde",
+      "passages": 6,
+      "result": "pass",
+      "version": 1
+    },
+    "no fallback identity": {
+      "result": "pass"
+    },
+    "outage handling": {
+      "result": "pass"
+    },
+    "restricted page denied to Sales": {
+      "atlassian": "denied by Atlassian (Atlassian refused the request)",
+      "result": "pass",
+      "stewardry": "denied by Stewardry (operation confluence.read_page belongs to stage drafting)"
+    },
+    "site and account mapping": {
+      "account_ids": {
+        "grc": "712020:00000000-0000-4000-8000-000000000002",
+        "legal": "712020:00000000-0000-4000-8000-000000000003",
+        "sales": "712020:00000000-0000-4000-8000-000000000001"
+      },
+      "cloud_ids": {
+        "grc": [
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        "legal": [
+          "11111111-2222-4333-8444-555555555555"
+        ],
+        "sales": [
+          "11111111-2222-4333-8444-555555555555"
+        ]
+      },
+      "result": "pass"
+    }
+  },
+  "date": "2026-10-12",
+  "participants": "1 person operating every role",
+  "provenance": "connected"
+}

@@ -26,6 +26,7 @@ from stewardry.engagements.questionnaire.ingest import IngestRefused, ingest_que
 from stewardry.engagements.questionnaire.parse import MAX_BYTES
 from stewardry.platform import access, grants
 from stewardry.platform.artifacts import ArtifactStore
+from stewardry.platform.atlassian.adapter import AtlassianReads, ConnectRefused
 from stewardry.platform.audit import AuditEvent, AuditLog, record_now
 from stewardry.platform.credentials import CredentialStore, GatewayCredential
 from stewardry.platform.db.schema import question_drafts, task_grants, tasks, utcnow
@@ -41,8 +42,10 @@ REFRESH_MARGIN = dt.timedelta(seconds=60)
 HERE = Path(__file__).parent
 
 SECURITY_HEADERS = {
-    # No referrer, so the authorization code in the callback URL cannot leak.
-    "Referrer-Policy": "no-referrer",
+    # No referrer to any other site, so the authorization code in the callback
+    # URL cannot leak. Not "no-referrer": with it, browsers send `Origin: null`
+    # on same-site form posts, and the Origin check below refuses them.
+    "Referrer-Policy": "same-origin",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Cache-Control": "no-store",
@@ -70,6 +73,7 @@ class Services:
     sessions: SessionStore
     credentials: CredentialStore
     artifacts: ArtifactStore
+    atlassian: AtlassianReads | None = None  # None: Atlassian is not configured
 
 
 class Problem(Exception):
@@ -477,6 +481,49 @@ def create_app(services: Services) -> FastAPI:
                 )
             ).one()
         return RedirectResponse(f"/review/{draft.task_id}#{draft.question_id}", status_code=303)
+
+    # ---------------------------------------------------- Atlassian consent
+
+    @app.get("/connect", response_class=HTMLResponse)
+    def connect_page(
+        request: Request, session: Annotated[Session, Depends(required_session)]
+    ) -> HTMLResponse:
+        return page(request, "connect.html", session=session, configured=bool(services.atlassian))
+
+    @app.post("/connect", response_class=HTMLResponse)
+    def connect(request: Request, session: SessionDep) -> HTMLResponse:
+        """The user's own "Connect Atlassian" action (ADR 0010). The consent link
+        is shown in this response only, to this user. It is never stored,
+        logged, or audited."""
+        if services.atlassian is None:
+            raise Problem(503, "Atlassian is not configured for this Stewardry.")
+        credential = services.credentials.get(session.sub, utcnow())
+        if credential is None:
+            raise Problem(401, "Your sign-in has lapsed. Sign in again, then connect.")
+        try:
+            link = services.atlassian.connect(credential)
+            outcome, message = ("connected", None) if link is None else ("consent_needed", None)
+        except ConnectRefused as exc:
+            link, outcome, message = None, "refused", str(exc)
+        record_now(
+            services.engine,
+            services.log,
+            AuditEvent(
+                "atlassian.connect",
+                "failed" if outcome == "refused" else "succeeded",
+                actor_sub=session.sub,
+                details={"outcome": outcome},
+            ),
+        )
+        return page(
+            request,
+            "connect.html",
+            session=session,
+            configured=True,
+            link=link.url if link is not None else None,
+            connected=outcome == "connected",
+            message=message,
+        )
 
     @app.get("/registry", response_class=HTMLResponse)
     def registry_page(

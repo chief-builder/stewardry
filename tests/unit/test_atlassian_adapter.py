@@ -125,6 +125,7 @@ def test_jira_reads_only_allow_listed_fields() -> None:
         "issueIdOrKey": "SQR-1",
         "fields": ["customfield_10042", "summary"],
         "fieldsByKeys": True,
+        "view": "full",
         "responseContentFormat": "markdown",
     }
     assert "internal notes" not in json.dumps(result) and "secret.pdf" not in json.dumps(result)
@@ -329,3 +330,9 @@ def test_wrapped_structured_results_are_unwrapped() -> None:
 
     assert _parse(ToolSuccess({"result": [{"id": "site"}]}, "")) == [{"id": "site"}]
     assert _parse(ToolSuccess({"result": 1, "other": 2}, "")) == {"result": 1, "other": 2}
+
+
+@pytest.mark.parametrize("payload", [{"accountId": "a1"}, {"account_id": "a1"}])
+def test_the_account_id_is_read_in_either_spelling(payload: dict[str, str]) -> None:
+    gateway = FakeGateway(connected={BOB_TOKEN}, forced=[ToolSuccess(payload, "")])
+    assert reads(gateway).account_id(credential(BOB_TOKEN)) == "a1"

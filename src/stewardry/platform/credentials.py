@@ -62,6 +62,11 @@ class CredentialStore:
             ]
         return max(live, key=lambda c: c.expires_at, default=None)
 
+    def sessions_of(self, sub: str) -> list[str]:
+        """The IDs of the sessions that hold a credential for `sub`."""
+        with self._lock:
+            return [sid for sid, e in self._by_session.items() if e.sub == sub]
+
     def needs_refresh(self, session_id: str, now: dt.datetime, margin: dt.timedelta) -> str | None:
         """The session's refresh token if its credential expires within `margin`."""
         with self._lock:

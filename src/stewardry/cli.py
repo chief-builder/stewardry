@@ -371,6 +371,20 @@ def _serve(args: argparse.Namespace) -> int:
         httpx2.Client(timeout=15),
         settings.hub_scope,
     )
+    atlassian = None
+    if settings.atlassian_cloud_id:
+        from stewardry.platform.atlassian.adapter import AtlassianReads, AtlassianSettings
+        from stewardry.platform.atlassian.mcp_client import McpGatewayClient
+
+        customer_field = os.environ.get("STEWARDRY_JIRA_CUSTOMER_FIELD", "")
+        atlassian = AtlassianReads(
+            McpGatewayClient(settings.gateway_url),
+            AtlassianSettings(
+                settings.atlassian_cloud_id,
+                settings.consent_url_prefix,
+                {"customer": customer_field} if customer_field else {},
+            ),
+        )
     services = Services(
         settings,
         engine,
@@ -379,6 +393,7 @@ def _serve(args: argparse.Namespace) -> int:
         SessionStore(),
         CredentialStore(),
         ArtifactStore(artifacts_path(data_dir)),
+        atlassian,
     )
     print(f"Stewardry on http://{args.host}:{args.port} (public URL {settings.public_url})")
     uvicorn.run(create_app(services), host=args.host, port=args.port, log_level="info")

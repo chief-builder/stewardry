@@ -40,3 +40,13 @@ def test_signing_out_removes_the_credential() -> None:
 def test_naive_expiry_is_rejected() -> None:
     with pytest.raises(ValueError, match="timezone-aware"):
         GatewayCredential(access_token=TOKEN, expires_at=dt.datetime(2026, 10, 10))
+
+
+def test_sessions_of_lists_a_users_sessions() -> None:
+    store = CredentialStore()
+    later = dt.datetime.now(dt.UTC) + dt.timedelta(hours=1)
+    store.put("s1", "sub-a", GatewayCredential("t1", later))
+    store.put("s2", "sub-a", GatewayCredential("t2", later))
+    store.put("s3", "sub-b", GatewayCredential("t3", later))
+    assert sorted(store.sessions_of("sub-a")) == ["s1", "s2"]
+    assert store.sessions_of("nobody") == []

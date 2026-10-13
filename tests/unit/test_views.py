@@ -4,6 +4,7 @@ leak tests on the rendered HTML, shadow verdicts, and audited refusals."""
 import json
 import re
 from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -57,6 +58,13 @@ def drafted(world: Engine, log: AuditLog, tmp_path: Path) -> Setup:
 
 @pytest.fixture
 def services(world: Engine, log: AuditLog, tmp_path: Path) -> Iterator[Services]:
+    with web_services(world, log, tmp_path) as built:
+        yield built
+
+
+@contextmanager
+def web_services(world: Engine, log: AuditLog, tmp_path: Path) -> Iterator[Services]:
+    """The web app's services over the fake hub (shared with other web tests)."""
     hub = FakeHub()
     http = httpx2.Client(transport=hub.transport())
     client = HubClient(ISSUER, CLIENT_ID, CLIENT_SECRET, SETTINGS.redirect_uri, http)

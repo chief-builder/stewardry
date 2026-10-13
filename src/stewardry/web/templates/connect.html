@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Stewardry: connect Atlassian{% endblock %}
+{% block main %}
+<p><a href="/">Back</a></p>
+<h2>Connect Atlassian</h2>
+{% if not configured %}
+<p>Atlassian is not configured for this Stewardry.</p>
+{% elif link %}
+<p class="notice">Open this link in this browser and approve access with <strong>your own</strong>
+   Atlassian account. When you are done, come back and connect again to check.</p>
+<p><a href="{{ link }}" rel="noopener noreferrer" target="_blank">Connect your Atlassian account</a></p>
+{% elif connected %}
+<p>Your Atlassian account is connected.</p>
+{% else %}
+{% if message %}<p class="problem">{{ message }}</p>{% endif %}
+<p>Stewardry reads Jira and Confluence as you, through the broker. It never sees your
+   Atlassian credentials, and it never writes to Atlassian.</p>
+<form method="post" action="/connect">
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+  <button type="submit">Connect Atlassian</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -88,6 +88,25 @@ Milestone 1 is in progress. Done so far:
   exchange client. It is recommended for Milestone 2
   ([report](docs/plan/s14c-stewardry-gateway.md)) and is not used in
   Milestone 1.
+- **S15 (preparation):** a Connect Atlassian page, where each user gets
+  their own consent link, never stored. Also a kit that renders the synthetic
+  policies as Confluence pages for you to paste, and the manual connected
+  harness (`make test-connected`).
+- **S15 (connected run, 2026-10-12):** one person operating every role ran
+  the harness against a synthetic Atlassian site. All eight checks ran:
+  - distinct accounts per persona;
+  - the Jira read, partial at first: only `summary` came back. A rerun with
+    the full view returned `reporter` and `created` too;
+  - a full page read with version and hash;
+  - a restricted page denied by Atlassian and by Stewardry;
+  - an expert edit detected;
+  - an outage not reported as consent;
+  - disconnect, then consent again;
+  - no fallback identity.
+
+  See the [report](docs/connected/2026-10-12/report.md), labeled
+  **connected**. It verifies compatibility only. It is not a shadow run and
+  says nothing about model quality.
 
 There are no approvals and no export yet. See the
 [Milestone 1 plan](docs/plan/milestone-1.md).

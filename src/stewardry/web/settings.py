@@ -18,6 +18,10 @@ class WebSettings:
     hub_client_id: str
     hub_client_secret: str = field(repr=False)
     hub_scope: str = "openid mcp-gateway"
+    # Atlassian through the broker's gateway. Without a cloud ID, Atlassian is off.
+    gateway_url: str = "http://localhost:8500/mcp"
+    atlassian_cloud_id: str = ""
+    consent_url_prefix: str = "http://localhost:8600/v1/authorize/atlassian?txn="
 
     @property
     def redirect_uri(self) -> str:
@@ -43,4 +47,9 @@ class WebSettings:
             hub_client_id=os.environ.get("STEWARDRY_HUB_CLIENT_ID", "stewardry"),
             hub_client_secret=os.environ["STEWARDRY_HUB_CLIENT_SECRET"],
             hub_scope=os.environ.get("STEWARDRY_HUB_SCOPE", "openid mcp-gateway"),
+            gateway_url=os.environ.get("STEWARDRY_GATEWAY_URL", cls.gateway_url),
+            atlassian_cloud_id=os.environ.get("STEWARDRY_ATLASSIAN_CLOUD_ID", ""),
+            consent_url_prefix=os.environ.get(
+                "STEWARDRY_CONSENT_URL_PREFIX", cls.consent_url_prefix
+            ),
         )
