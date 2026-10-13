@@ -242,7 +242,7 @@ def session() -> Iterator[Session]:
     thread.start()
 
     today = dt.date.today().isoformat()
-    out = ROOT / "docs" / "connected" / today
+    out = Path(os.environ.get("STEWARDRY_CONNECTED_OUT", ROOT / "docs" / "connected" / today))
     out.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {
         "provenance": "connected",
@@ -320,7 +320,8 @@ def _ask(question: str) -> str:
 
 
 def test_people_sign_in_and_connect(session: Session) -> None:
-    _wait_until_connected(session, ["sales", "grc", "legal"])
+    roles = os.environ.get("STEWARDRY_CONNECTED_ROLES", "sales,grc,legal").split(",")
+    _wait_until_connected(session, roles)
 
 
 def test_sites_and_distinct_accounts(session: Session) -> None:

@@ -251,6 +251,14 @@ Do this after sections 1–7 and your go-ahead.
    report, [2026-10-12](connected/2026-10-12/report.md), replaced the site's
    cloud ID, site name, and account IDs with placeholders, and kept the raw
    files in the git-ignored `build/`.
+6. **Rerunning one check.** Write the output somewhere other than the
+   committed report, wait only for the personas that check needs, and select
+   the check by name. For the Jira read:
+
+   ```bash
+   STEWARDRY_CONNECTED_OUT=build/connected-jira STEWARDRY_CONNECTED_ROLES=sales \
+     make test-connected PYTEST_ARGS='-k "sign_in or jira"'
+   ```
 
 ## Sign-off
 

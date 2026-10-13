@@ -70,7 +70,7 @@ confluence-pages: install  ## Render the synthetic policies as Confluence pages 
 	$(RUN) python -m tools.render_policy_pages
 
 test-connected: install  ## Connected verification (S15): real stack, people in browsers; writes docs/connected/<date>/
-	STEWARDRY_CONNECTED=1 $(RUN) pytest -m connected --no-cov -s --tb=short tests/connected
+	STEWARDRY_CONNECTED=1 $(RUN) pytest -m connected --no-cov -s --tb=short tests/connected $(PYTEST_ARGS)
 
 pinned-links:  ## Check GitHub links pinned to a commit SHA via the API (needs network)
 	python3 tools/check_pinned_links.py
