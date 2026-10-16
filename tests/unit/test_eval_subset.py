@@ -203,5 +203,6 @@ def test_author_grades_are_merged_by_the_command(tmp_path: Path) -> None:
     args = ["--mode", "scripted", "--suite", "smoke", "--out", str(out)]
     assert main([*args, "--recordings", str(tmp_path / "r"), "--grades", str(grades)]) == 0
     (report_file,) = out.glob("*.json")
-    graded = json.loads(report_file.read_text())["metrics"]["correctness_author_graded"]
-    assert graded["graded"] == 1 and graded["correct"]["hits"] == 1
+    rows = {i["item"]: i for i in json.loads(report_file.read_text())["items"]}
+    assert rows["QN-LARKSPUR-01#Q09"]["grade"] == "correct"
+    assert rows["QN-LARKSPUR-01#Q14"]["grade"] is None  # not a known grade

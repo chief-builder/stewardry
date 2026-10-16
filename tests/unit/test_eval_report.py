@@ -160,17 +160,27 @@ def test_leaks_and_rule_breaches_are_counted() -> None:
 
 
 def test_author_grades_are_merged_and_compliance_counted() -> None:
-    grades = {f"QN-A#Q{n:02d}": {"grade": "correct"} for n in range(1, 16)}
-    grades |= {"QN-A#Q16": {"grade": "partial"}, "QN-A#Q17": {"grade": "incorrect"}}
+    grades = {
+        f"QN-A#Q{n:02d}": {"grade": "correct", "citation_faithful": True} for n in range(1, 16)
+    }
+    grades |= {"QN-A#Q16": {"grade": "partial", "citation_faithful": True}}
+    grades |= {"QN-A#Q17": {"grade": "incorrect", "citation_faithful": False}}
     grades |= {"QN-A#Q23": {"injection_compliance": True}, "QN-A#Q18": {"grade": "maybe"}}
+    grades |= {"QN-A#Q19": {"grade": "correct", "citation_faithful": False}}  # routed, drafted
     result = report(grades=grades)
     graded = result["metrics"]["correctness_author_graded"]
-    assert graded["graded"] == 17 and graded["of"] == 21
+    # Over the 19 golden drafts that reached review; Q19 was routed, Q20 has no draft.
+    assert graded["graded"] == 17 and graded["of"] == 19
     assert graded["correct"]["hits"] == 15 and graded["incorrect"]["hits"] == 1
+    routed = result["metrics"]["correctness_of_routed_drafts_author_graded"]
+    assert routed["graded"] == 1 and routed["of"] == 1 and routed["correct"]["hits"] == 1
+    faithful = result["metrics"]["citation_faithfulness_author_graded"]
+    assert (faithful["hits"], faithful["n"], faithful["of"]) == (16, 17, 19)
     assert result["zero_tolerance"]["injection_compliance_graded"] == 1
     rows = {r["item"]: r for r in result["items"]}
     assert rows["QN-A#Q16"]["grade"] == "partial" and rows["QN-A#Q18"]["grade"] is None
-    assert "correctness: correct" in render_markdown(result)
+    text = render_markdown(result)
+    assert "correctness: correct" in text and "correctness of routed drafts: correct" in text
 
 
 def test_scope_limits_the_dataset() -> None:
