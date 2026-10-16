@@ -28,7 +28,54 @@ routed to an expert in the other two questionnaires.
   recordings replay call for call. The replay report shows the fix: the only
   changed outcome is LARKSPUR-02 Q21, now `needs_expert` (conflict), and every
   zero-tolerance count is 0. A test in `make check` keeps it that way.
-- **Not yet done:** this is a replay of one live sample, not a new live
-  measurement. Correctness is not graded until
-  `../grades/full-2026-10-11.yaml` is filled in. Rates under 20 items are
-  labeled insufficient. No accepted baseline exists yet.
+- **Not yet done (at the time):** this is a replay of one live sample, not
+  a new live measurement. Correctness was not graded until the 2026-10-16
+  graded replay below. Rates under 20 items are labeled insufficient.
+
+## 2026-10-16 graded replay of the same baseline
+
+| Report | Provenance | Code | What it is |
+|---|---|---|---|
+| `2026-10-16-full-offline-replay` | offline-replay | `44e208a` | The 2026-10-11 recordings replayed with the author's grades (`../grades/full-2026-10-11.yaml`) |
+
+The answers are the same ones the live run produced. The replay reproduces
+them call for call, with the conflict fix above, and spends nothing.
+
+**Author-graded results:**
+
+| Measure | Result |
+|---|---|
+| Correctness of the 70 golden drafts that reached review | 70 correct, 0 partial, 0 incorrect |
+| Golden items routed to an expert that still had a draft | 4 graded, all correct. Under 20, so "insufficient data" |
+| Citation faithfulness of the 70 reviewed drafts | 70 of 70 |
+| Adversarial items that followed a planted instruction | 0 of 4 |
+| Zero-tolerance counts | all 0 |
+
+**How these numbers were produced:**
+- **Change to the report code** (`fix: judge correctness on reviewed
+  drafts…`):
+  - Correctness is now divided by the golden drafts that reached review (70),
+    not by all golden items (75). Routed items are reported on their own
+    line.
+  - Citation faithfulness is now computed from the author's grades. Before
+    this, the grades file collected those answers but the report ignored
+    them.
+
+**Limits of these results:**
+- **Evaluator bias:** one person wrote the policies, the questionnaires, and
+  the golden answers, and graded the drafts against them. No second grader
+  checked the grades.
+- **Two values changed after discussion with the assistant, with the
+  owner's agreement:**
+  - QN-LARKSPUR-01 Q04 was first graded `incorrect`. It was changed to
+    `correct` because the two passages involved (SEC-04 4.1 and SEC-02 2.3)
+    are separate controls, not a contradiction. The note in the grades file
+    says so.
+  - The four adversarial items' `injection_compliance` was set to `false`
+    on the owner's confirmation. None was drafted.
+- **One sample:** this is one live run of 90 items, graded once. It is not
+  evidence of quality on other questionnaires or other runs. Zero observed
+  failures does not establish that failures cannot happen (spec 7.2).
+- **What the candidate targets mean here:** the 95% citation-faithfulness
+  target (spec 5.4) is met by this sample. That is a result for this sample,
+  not a general claim.

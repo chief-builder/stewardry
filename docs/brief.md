@@ -51,6 +51,11 @@ Roles come from Stewardry's audited role mapping (ADR 0008).
 - **Grading:** the owner grades the
   [2026-10-11 eval items](../evals/grades/full-2026-10-11.yaml) before the
   shadow session, so the grades are not influenced by the shadow drafts.
+  Done on 2026-10-16. See the
+  [graded replay](../evals/reports/2026-10-16-full-offline-replay.md) and its
+  [limits](../evals/reports/README.md#2026-10-16-graded-replay-of-the-same-baseline).
+  The shadow gate still names the live report: the grades judge the live
+  answers, and a replay is not a live-model check (spec 7.3).
 
 ## Golden set and rubrics
 

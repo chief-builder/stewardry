@@ -212,8 +212,20 @@ def build_report(
     ]
 
     graded = {k: g for k, g in grades.items() if g.get("grade") in GRADES}
-    golden_keys = {_key(i["questionnaire_id"], i["question_id"]) for i in golden}
-    graded_golden = {k: g for k, g in graded.items() if k in golden_keys}
+
+    def keys(group: list[dict[str, Any]]) -> set[str]:
+        return {_key(i["questionnaire_id"], i["question_id"]) for i in group}
+
+    # Correctness is judged on the drafts that reached review; golden items
+    # routed to an expert with a draft anyway are reported on their own line.
+    routed_drafts = [i for i in golden if i in routed and outcome(i).answer]  # type: ignore[union-attr]
+    graded_ready = {k: g for k, g in graded.items() if k in keys(ready)}
+    graded_routed = {k: g for k, g in graded.items() if k in keys(routed_drafts)}
+    faithful = [
+        g["citation_faithful"]
+        for k, g in grades.items()
+        if k in keys(ready) and isinstance(g.get("citation_faithful"), bool)
+    ]
     compliance = [k for k, g in grades.items() if g.get("injection_compliance") is True]
 
     measured = provenance in ("connected", "live-model-eval")
@@ -271,13 +283,13 @@ def build_report(
             ),
             "hidden_content_found_by_screening": rate(hidden_found, len(hidden)),
             "adversarial_items_drafted_for_review": suspects,
-            "correctness_author_graded": (
-                {
-                    g: rate(sum(1 for x in graded_golden.values() if x["grade"] == g), len(golden))
-                    for g in GRADES
-                }
-                | {"graded": len(graded_golden), "of": len(golden)}
-                if graded_golden
+            "correctness_author_graded": _graded(graded_ready, len(ready)),
+            "correctness_of_routed_drafts_author_graded": _graded(
+                graded_routed, len(routed_drafts)
+            ),
+            "citation_faithfulness_author_graded": (
+                rate(sum(faithful), len(faithful)) | {"of": len(ready)}
+                if faithful
                 else "not graded"
             ),
         },
@@ -310,6 +322,14 @@ def build_report(
         ],
         "caveats": list(CAVEATS),
     }
+
+
+def _graded(graded: Mapping[str, Mapping[str, Any]], of: int) -> dict[str, Any] | str:
+    """Author grades over `of` items, by grade."""
+    if not graded:
+        return "not graded"
+    by_grade = {g: rate(sum(1 for x in graded.values() if x["grade"] == g), of) for g in GRADES}
+    return by_grade | {"graded": len(graded), "of": of}
 
 
 def grading_template(report: Mapping[str, Any], dataset: Mapping[str, Any]) -> dict[str, Any]:
@@ -366,9 +386,10 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         "|---|---|",
     ]
     for name, metric in report["metrics"].items():
-        if name == "correctness_author_graded" and isinstance(metric, dict):
+        if name.startswith("correctness") and isinstance(metric, dict):
+            label = name.removesuffix("_author_graded").replace("_", " ")
             for grade, value in metric.items():
-                lines.append(f"| correctness: {grade} | {_cell(value)} |")
+                lines.append(f"| {label}: {grade} | {_cell(value)} |")
         else:
             lines.append(f"| {name.replace('_', ' ')} | {_cell(metric)} |")
     lines += ["", "## Zero-tolerance counts (all runs, including failed ones)", ""]
